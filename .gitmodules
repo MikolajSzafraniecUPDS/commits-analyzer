@@ -4,3 +4,6 @@
 [submodule "submodules/dtw-python"]
 	path = submodules/dtw-python
 	url = https://github.com/DynamicTimeWarping/dtw-python
+[submodule "submodules/boto3"]
+	path = submodules/boto3
+	url = https://github.com/boto/boto3
