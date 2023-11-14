@@ -4,17 +4,7 @@ Definition of process of getting repositories as submodules this repo.
 
 import subprocess
 import os
-
-# A way to fix import errors
-try:
-    from config.repos_to_analyze import REPOS_TO_ANALYZE
-except ImportError:
-    import sys
-    sys.path.append(sys.path[0] + '/..')
-    from config.repos_to_analyze import REPOS_TO_ANALYZE
-
-from config.repos_to_analyze import REPOS_TO_ANALYZE
-
+from typing import List
 
 def _store_single_repo_as_submodule(repo_url: str) -> None:
     """
@@ -31,15 +21,14 @@ def _store_single_repo_as_submodule(repo_url: str) -> None:
     os.chdir("..")
 
 
-def get_repos() -> None:
+def get_repos(repos_list: List[str]) -> None:
     """
     Clone all repositories specified in the configuration file as
     submodules.
+
+    :param repos_list: List of HTTPS urls to the repositories we want
+        to analyze
     """
 
-    for repo_url in REPOS_TO_ANALYZE:
+    for repo_url in repos_list:
         _store_single_repo_as_submodule(repo_url)
-
-
-if __name__ == "__main__":
-    get_repos()
