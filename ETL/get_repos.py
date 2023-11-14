@@ -16,19 +16,29 @@ def _store_single_repo_as_submodule(repo_url: str) -> None:
     :param repo_url: HTTPS url to the repository we want to clone as
         a submodule
     """
-    os.chdir("submodules")
     subprocess.run(["git", "submodule", "add", f'{repo_url}'])
-    os.chdir("..")
+    subprocess.run(
+        [
+            "git", "commit", "-a", "-m",
+            "'Submodule {0} cloned'".format(os.path.basename(repo_url))
+        ]
+    )
 
 
-def get_repos(repos_list: List[str]) -> None:
+def get_repos(repos_list: List[str], submodules_dir: str) -> None:
     """
     Clone all repositories specified in the configuration file as
     submodules.
 
     :param repos_list: List of HTTPS urls to the repositories we want
         to analyze
+    :param submodules_dir: directory in which we are going to store
+        repos during ETL process
     """
+    initial_dir = os.getcwd()
+    os.chdir(submodules_dir)
 
     for repo_url in repos_list:
         _store_single_repo_as_submodule(repo_url)
+
+    os.chdir(initial_dir)
