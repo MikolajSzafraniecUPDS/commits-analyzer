@@ -1,0 +1,16 @@
+version: '3.8'
+
+networks:
+  commits-analyzer-network:
+    name: commits-analyzer-network
+
+services:
+  db:
+    restart: always
+    image: postgres
+    env_file:
+      - docker/env_variables/global.env
+    networks:
+      - commits-analyzer-network
+    ports:
+      - '${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}'
