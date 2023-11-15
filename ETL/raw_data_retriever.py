@@ -5,11 +5,14 @@ repository
 
 import os
 import subprocess
-import re
+import logging
+import logging.config
 
 from pathlib import Path
 from typing import List
 
+logging.config.fileConfig(os.path.join("config", "logging.conf"))
+logger = logging.getLogger("consoleLogger")
 
 class RawDataRetriever:
 
@@ -25,10 +28,9 @@ class RawDataRetriever:
     # - UNIX timestamp
     # - Committer email
     # - Committer name
-    # - Encoding
     #
     # More info about git log formatting: https://git-scm.com/docs/pretty-formats
-    _GENERAL_INFO_FORMAT = "'%H;%ae;%an;%at;%ce;%cn;%e'"
+    _GENERAL_INFO_FORMAT = "'%H;%ae;%an;%at;%ce;%cn'"
     _OUTPUT_FILES = {
         "commits_hashes": "commits_hashes_no_merges.csv",
         "merges_info": "merges_info.csv",
@@ -87,7 +89,6 @@ class RawDataRetriever:
         - UNIX timestamp
         - Committer email
         - Committer name
-        - Encoding
         """
 
         output_file = os.path.join(
@@ -270,18 +271,28 @@ class RawDataRetriever:
             f.writelines(results)
 
     def generate_raw_data(self):
+        repo_name = os.path.basename(self.repo_path)
+        logger.info("Process of generating raw commits data for repo '{0}' started".format(repo_name))
+
         # Get current working directory
         initial_dir = os.getcwd()
 
         # Create output directory
+        logger.info("Creating output directory to store raw data for repo '{0}'".format(repo_name))
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
 
         # Go to the repo dir and generate data
+        logger.info("Changing dir to repository dir")
         os.chdir(self.repo_path)
+        logger.info("Generating commits hashes for repo '{0}'".format(repo_name))
         self._get_commit_hashes_no_merges()
+        logger.info("Generating merges info for repo '{0}'".format(repo_name))
         self._get_merges_info()
+        logger.info("Generating commits general info for repo '{0}'".format(repo_name))
         self._get_commits_general_info()
+        logger.info("Generating commits messages for repo '{0}'".format(repo_name))
         self._get_commits_messages()
+        logger.info("Generating information about insertions and deletions for repo '{0}'".format(repo_name))
         self._get_number_of_insertions_and_deletions_for_all_commits()
 
         # Go back to the initial directory
