@@ -8,6 +8,7 @@ import subprocess
 import re
 
 from pathlib import Path
+from typing import List
 
 
 class RawDataRetriever:
@@ -125,42 +126,78 @@ class RawDataRetriever:
         subprocess.run(command, shell=True)
 
     @staticmethod
-    def _extract_number_of_insertions_or_deletions_from_stats(
-            pattern: str, commit_log: str
+    def _extract_number_of_insertions(
+            log_line: List[str]
     ) -> int:
         """
         Helper function to '_get_insertions_deletions_info'. It retrieves
-        number of insertion / deletions from given string and converts it to integer
-        or returns zero if there were no match for given commit.
+        number of insertion from last line of git diff log converted to
+        list of strings.
 
-        :param pattern: regexp pattern to match
-        :param commit_log: input string, results of 'git diff --stat HASH' call
-        :return: number of insertions / deletions (depends on provided pattern)
+        :param log_line: last line of git diff log, decoded and converted to list
+            of words
+        :return: number of insertions per commit
         """
 
-        regexp_match = re.search(pattern, commit_log)
-        if regexp_match is None:
-            res = 0
+        # Helper internals
+        def _both_insertions_and_deletions() -> bool:
+            return len(log_line) == 7
+
+        def _insertions_only() -> bool:
+            return log_line[4].startswith("insert")
+
+        if _both_insertions_and_deletions():  # Case when there are both insertions and deletions
+            res = int(log_line[3])
         else:
-            res = int(regexp_match.group())
+            res = int(log_line[3]) if _insertions_only() else 0
 
         return res
 
     @staticmethod
-    def _get_git_diff_log(commit_hash: str) -> str:
+    def _extract_number_of_deletions(
+            log_line: List[str]
+    ) -> int:
+        """
+        Helper function to '_get_insertions_deletions_info'. It retrieves
+        number of deletions from last line of git diff log converted to
+        list of strings.
+
+        :param log_line: last line of git diff log, decoded and converted to list
+            of words
+        :return: number of deletions per commit
+        """
+
+        # Helper internals
+        def _both_insertions_and_deletions() -> bool:
+            return len(log_line) == 7
+
+        def _insertions_only() -> bool:
+            return log_line[4].startswith("insert")
+
+        if _both_insertions_and_deletions():  # Case when there are both insertions and deletions
+            res = int(log_line[5])
+        else:
+            res = 0 if _insertions_only() else int(log_line[5])
+
+        return res
+
+    @staticmethod
+    def _get_git_diff_log(commit_hash: str) -> List[str]:
         """
         Helper function to '_get_insertions_deletions_info'. It
         gets the git diff log for provided hash. We need only last line,
-        which contains information which we are interested in.
+        which contains information which we are interested in. Line is split
+        into list of words.
 
         :param commit_hash: hash of the commit for which we want to get information
             about
-        :return: full log in the form of string
+        :return: last line of the log containing information about number of insertions
+            and deletions, split to the form of list of words
         """
 
         command = "git diff --stat {0} | tail -n 1".format(commit_hash)
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        output = str(proc.stdout.read())
+        output = proc.stdout.read().decode().split()
 
         return output
 
@@ -175,18 +212,17 @@ class RawDataRetriever:
             .csv file
         """
 
-        # Regexp patterns - find any number of digits followed by
-        # ' insertion[s](+)' / ' deletion[s](-)' phrase
-        REGEXP_PATTERN_INSERTIONS = r'[0-9]+(?= insertion[s]?\(\+\))'
-        REGEXP_PATTERN_DELETIONS = r'[0-9]+(?= deletion[s]?\(\-\))'
-
         commit_log = self._get_git_diff_log(commit_hash)
-        insertions = self._extract_number_of_insertions_or_deletions_from_stats(
-            REGEXP_PATTERN_INSERTIONS, commit_log
-        )
-        deletions = self._extract_number_of_insertions_or_deletions_from_stats(
-            REGEXP_PATTERN_DELETIONS, commit_log
-        )
+        if not commit_log:  # Case when there are no insertions nor deletions
+            insertions = 0
+            deletions = 0
+        else:
+            try:
+                insertions = self._extract_number_of_insertions(commit_log)
+                deletions = self._extract_number_of_deletions(commit_log)
+            except Exception as e: # In case there are any unpredictable exception we need to assume that number of insertions and deletions are zeros
+                insertions = 0
+                deletions = 0
 
         output_line = "{0};{1};{2}".format(
             commit_hash, insertions, deletions
@@ -226,7 +262,7 @@ class RawDataRetriever:
         )
 
         results = [
-            self._get_insertions_deletions_info(commit_hash)
+            self._get_insertions_deletions_info(commit_hash) + "\n"
             for commit_hash in hashes_list
         ]
 
