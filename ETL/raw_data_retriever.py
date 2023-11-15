@@ -5,7 +5,6 @@ repository
 
 import os
 import subprocess
-import logging
 import logging.config
 
 from pathlib import Path
@@ -19,6 +18,15 @@ class RawDataRetriever:
     """
     This class retrieves the set of raw commits data from target repository
     (stored as submodule) and save it in the output directory.
+
+    List of the files is as follows:
+        - commits_hashes_no_merges.csv - list of hashes of all commits except merges; we
+            will use it later as a primary key in database
+        - commits_general_info.csv - general info regarding commits, such as author, time
+            and commiter
+        - commits_messages.csv - list of all commits messages
+        - insetions_deletions.csv - number of insertions and deletions for each commit
+        - merges_info.csv - hashes and time of merges, we will use it in the analysis
     """
 
     # Format of output file for commits general info, which includes:
@@ -38,6 +46,21 @@ class RawDataRetriever:
         "commits_messages": "commits_messages.csv",
         "insertions_deletions": "insertions_deletions.csv"
     }
+    # File headers
+    _HEADERS = {
+        "commits_hashes": ["commit_hash"],
+        "merges_info": ["merge_hash", "merge_unix_time"],
+        "commits_info": [
+            "commit_hash",
+            "author_email",
+            "author_name",
+            "commit_unix_time",
+            "commiter_email",
+            "commiter_name"
+        ],
+        "commits_messages": ["commit_hash", "commit_message"],
+        "insertions_deletions": ["commit_hash", "insertions", "deletions"]
+    }
 
     def __init__(self, repo_path: str, output_dir: str):
         """
@@ -51,6 +74,19 @@ class RawDataRetriever:
         # We need an absolute path of the output directory
         self.output_dir = os.path.join(os.path.abspath(output_dir), self.repo_name)
 
+
+    def _generate_headers(self, file_type: str) -> str:
+        """
+        Generate headers line for given file based using _HEADERS
+        dictionary.
+
+        :param file_type: type of the file (one of keys from _HEADERS dict)
+        :return: headers line, separated with semicolon with '\n' at the end
+        """
+
+        res = ";".join(self._HEADERS.get(file_type)) + "\n"
+        return res
+
     def _get_commit_hashes_no_merges(self) -> None:
         """
         Get a list of hashes of all commits except merges
@@ -60,7 +96,12 @@ class RawDataRetriever:
         output_file = os.path.join(
             self.output_dir, self._OUTPUT_FILES.get("commits_hashes")
         )
-        command = "git log --no-merges --all --pretty=format:'%H' > {0}".format(output_file)
+
+        headers = self._generate_headers("commits_hashes")
+        with open(output_file, 'w') as f:
+            f.write(headers)
+
+        command = "git log --no-merges --all --pretty=format:'%H' >> {0}".format(output_file)
         subprocess.run(command, shell=True)
 
     def _get_merges_info(self) -> None:
@@ -76,7 +117,12 @@ class RawDataRetriever:
         output_file = os.path.join(
             self.output_dir, self._OUTPUT_FILES.get("merges_info")
         )
-        command = "git log --merges --all --pretty=format:'%H;%at' > {0}".format(output_file)
+
+        headers = self._generate_headers("merges_info")
+        with open(output_file, 'w') as f:
+            f.write(headers)
+
+        command = "git log --merges --all --pretty=format:'%H;%at' >> {0}".format(output_file)
         subprocess.run(command, shell=True)
 
     def _get_commits_general_info(self) -> None:
@@ -95,7 +141,11 @@ class RawDataRetriever:
             self.output_dir, self._OUTPUT_FILES.get("commits_info")
         )
 
-        command = "git log --no-merges --all --pretty=format:{0} > {1}".format(
+        headers = self._generate_headers("commits_info")
+        with open(output_file, 'w') as f:
+            f.write(headers)
+
+        command = "git log --no-merges --all --pretty=format:{0} >> {1}".format(
             self._GENERAL_INFO_FORMAT, output_file
         )
 
@@ -120,8 +170,13 @@ class RawDataRetriever:
         output_file = os.path.join(
             self.output_dir, self._OUTPUT_FILES.get("commits_messages")
         )
+
+        headers = self._generate_headers("commits_messages")
+        with open(output_file, 'w') as f:
+            f.write(headers)
+
         # sed 's/;//2g' - replace all semicolons except the first one in each line with blank char
-        command = "git log --no-merges --all --pretty=format:'%H;%s' | sed 's/;//2g' > {0}".format(
+        command = "git log --no-merges --all --pretty=format:'%H;%s' | sed 's/;//2g' >> {0}".format(
             output_file
         )
         subprocess.run(command, shell=True)
@@ -264,13 +319,19 @@ class RawDataRetriever:
 
         results = [
             self._get_insertions_deletions_info(commit_hash) + "\n"
-            for commit_hash in hashes_list
+            for commit_hash in hashes_list[1:]  # Skip header
         ]
+
+        headers = self._generate_headers("insertions_deletions")
+        results.insert(0, headers)
 
         with open(output_file, 'w') as f:
             f.writelines(results)
 
     def generate_raw_data(self):
+        """
+        Generate all files containing raw commits data for given repository.
+        """
         repo_name = os.path.basename(self.repo_path)
         logger.info("Process of generating raw commits data for repo '{0}' started".format(repo_name))
 
@@ -297,3 +358,23 @@ class RawDataRetriever:
 
         # Go back to the initial directory
         os.chdir(initial_dir)
+
+def generate_raw_data_for_all_repos(repos_dir: str, output_dir: str) -> None:
+    """
+    Generates raw data files for all repositories stored in provided
+    directory.
+
+    :param repos_dir: directory where repos are stored
+    :param output_dir: where to store the output raw files
+    """
+
+    # Get paths to all repos in given dir
+    repos_paths = [
+        f.path
+        for f in os.scandir(repos_dir) if f.is_dir()
+    ]
+
+    for single_path in repos_paths:
+        RawDataRetriever(
+            repo_path=single_path, output_dir=output_dir
+        ).generate_raw_data()
