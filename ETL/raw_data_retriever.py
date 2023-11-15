@@ -120,10 +120,30 @@ class RawDataRetriever:
             self.output_dir, self._OUTPUT_FILES.get("commits_messages")
         )
         # sed 's/;//2g' - replace all semicolons except the first one in each line with blank char
-        command = "git log --merges --all --pretty=format:'%H;%s' | sed 's/;//2g' > {0}".format(
+        command = "git log --no-merges --all --pretty=format:'%H;%s' | sed 's/;//2g' > {0}".format(
             output_file
         )
         subprocess.run(command, shell=True)
+
+    @staticmethod
+    def _get_git_diff_log(commit_hash: str) -> List[str]:
+        """
+        Helper function to '_get_insertions_deletions_info'. It
+        gets the stats for provided hash. We need only last line,
+        which contains information which we are interested in (insertions
+        and deletions). Line is split into list of words.
+
+        :param commit_hash: hash of the commit for which we want to get information
+            about
+        :return: last line of the log containing information about number of insertions
+            and deletions, split to the form of list of words
+        """
+
+        command = "git show --shortstat {0} | tail -n 1".format(commit_hash)
+        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
+        output = proc.stdout.read().decode().split()
+
+        return output
 
     @staticmethod
     def _extract_number_of_insertions(
@@ -180,26 +200,6 @@ class RawDataRetriever:
             res = 0 if _insertions_only() else int(log_line[5])
 
         return res
-
-    @staticmethod
-    def _get_git_diff_log(commit_hash: str) -> List[str]:
-        """
-        Helper function to '_get_insertions_deletions_info'. It
-        gets the git diff log for provided hash. We need only last line,
-        which contains information which we are interested in. Line is split
-        into list of words.
-
-        :param commit_hash: hash of the commit for which we want to get information
-            about
-        :return: last line of the log containing information about number of insertions
-            and deletions, split to the form of list of words
-        """
-
-        command = "git diff --stat {0} | tail -n 1".format(commit_hash)
-        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        output = proc.stdout.read().decode().split()
-
-        return output
 
     def _get_insertions_deletions_info(self, commit_hash: str) -> str:
         """

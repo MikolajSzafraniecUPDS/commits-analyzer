@@ -13,5 +13,5 @@ from config.paths import SUBMODULES_DIR, RAW_DATA_DIR
 
 if __name__ == "__main__":
     #get_repos(repos_list=REPOS_TO_ANALYZE, submodules_dir=SUBMODULES_DIR)
-    RawDataRetriever("submodules/boto3", RAW_DATA_DIR).generate_raw_data()
+    RawDataRetriever("submodules/dtw-python", RAW_DATA_DIR).generate_raw_data()
     #delete_repos(repos_dir=SUBMODULES_DIR)
