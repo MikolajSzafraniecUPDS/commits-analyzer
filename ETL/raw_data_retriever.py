@@ -46,7 +46,7 @@ class RawDataRetriever:
         "commits_messages": "commits_messages.csv",
         "insertions_deletions": "insertions_deletions.csv"
     }
-    # File headers
+    # Files headers
     _HEADERS = {
         "commits_hashes": ["commit_hash"],
         "merges_info": ["merge_hash", "merge_unix_time"],
