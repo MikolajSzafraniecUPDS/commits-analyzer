@@ -10,6 +10,8 @@ import logging.config
 from pathlib import Path
 from typing import List
 
+from config.raw_files_config import OUTPUT_FILES, GENERAL_INFO_FORMAT, HEADERS
+
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
 
@@ -38,29 +40,6 @@ class RawDataRetriever:
     # - Committer name
     #
     # More info about git log formatting: https://git-scm.com/docs/pretty-formats
-    _GENERAL_INFO_FORMAT = "'%H;%ae;%an;%at;%ce;%cn'"
-    _OUTPUT_FILES = {
-        "commits_hashes": "commits_hashes_no_merges.csv",
-        "merges_info": "merges_info.csv",
-        "commits_info": "commits_general_info.csv",
-        "commits_messages": "commits_messages.csv",
-        "insertions_deletions": "insertions_deletions.csv"
-    }
-    # Files headers
-    _HEADERS = {
-        "commits_hashes": ["commit_hash"],
-        "merges_info": ["merge_hash", "merge_unix_time"],
-        "commits_info": [
-            "commit_hash",
-            "author_email",
-            "author_name",
-            "commit_unix_time",
-            "commiter_email",
-            "commiter_name"
-        ],
-        "commits_messages": ["commit_hash", "commit_message"],
-        "insertions_deletions": ["commit_hash", "insertions", "deletions"]
-    }
 
     def __init__(self, repo_path: str, output_dir: str):
         """
@@ -77,14 +56,14 @@ class RawDataRetriever:
 
     def _generate_headers(self, file_type: str) -> str:
         """
-        Generate headers line for given file based using _HEADERS
+        Generate headers line for given file based using HEADERS
         dictionary.
 
-        :param file_type: type of the file (one of keys from _HEADERS dict)
+        :param file_type: type of the file (one of keys from HEADERS dict)
         :return: headers line, separated with semicolon with '\n' at the end
         """
 
-        res = ";".join(self._HEADERS.get(file_type)) + "\n"
+        res = ";".join(HEADERS.get(file_type)) + "\n"
         return res
 
     def _get_commit_hashes_no_merges(self) -> None:
@@ -94,7 +73,7 @@ class RawDataRetriever:
         """
 
         output_file = os.path.join(
-            self.output_dir, self._OUTPUT_FILES.get("commits_hashes")
+            self.output_dir, OUTPUT_FILES.get("commits_hashes")
         )
 
         headers = self._generate_headers("commits_hashes")
@@ -115,7 +94,7 @@ class RawDataRetriever:
         """
 
         output_file = os.path.join(
-            self.output_dir, self._OUTPUT_FILES.get("merges_info")
+            self.output_dir, OUTPUT_FILES.get("merges_info")
         )
 
         headers = self._generate_headers("merges_info")
@@ -138,7 +117,7 @@ class RawDataRetriever:
         """
 
         output_file = os.path.join(
-            self.output_dir, self._OUTPUT_FILES.get("commits_info")
+            self.output_dir, OUTPUT_FILES.get("commits_info")
         )
 
         headers = self._generate_headers("commits_info")
@@ -146,7 +125,7 @@ class RawDataRetriever:
             f.write(headers)
 
         command = "git log --no-merges --all --pretty=format:{0} >> {1}".format(
-            self._GENERAL_INFO_FORMAT, output_file
+            GENERAL_INFO_FORMAT, output_file
         )
 
         subprocess.run(command, shell=True)
@@ -168,7 +147,7 @@ class RawDataRetriever:
         """
 
         output_file = os.path.join(
-            self.output_dir, self._OUTPUT_FILES.get("commits_messages")
+            self.output_dir, OUTPUT_FILES.get("commits_messages")
         )
 
         headers = self._generate_headers("commits_messages")
@@ -301,7 +280,7 @@ class RawDataRetriever:
 
         commits_hashes_file_path = os.path.join(
             self.output_dir,
-            self._OUTPUT_FILES.get("commits_hashes")
+            OUTPUT_FILES.get("commits_hashes")
         )
         if not os.path.exists(commits_hashes_file_path):
             raise FileNotFoundError(
@@ -314,7 +293,7 @@ class RawDataRetriever:
             hashes_list = f.read().splitlines()
 
         output_file = os.path.join(
-            self.output_dir, self._OUTPUT_FILES.get("insertions_deletions")
+            self.output_dir, OUTPUT_FILES.get("insertions_deletions")
         )
 
         results = [
