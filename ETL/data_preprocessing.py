@@ -16,7 +16,7 @@ from config.raw_files_config import OUTPUT_FILES
 from nltk.stem import PorterStemmer
 
 # Format in which date will be stored in the Postgres database
-_DATE_FORMAT = "%Y-%m-d"
+_DATE_FORMAT = "%Y-%m-%d"
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
@@ -229,6 +229,9 @@ class AuthorsSummaryTableProvider:
             - number_of_commits
             - number_of_insertions
             - number_of_deletions
+            - min_date - first day when author contributed
+            - max_date - last day when author contributed
+            - days_of_activity - difference between max date and min date
             - insertions_deletions_ratio - ratio of insertions sum to deletions sum
 
         :return: summary table as pandas DataFrame
@@ -245,17 +248,32 @@ class AuthorsSummaryTableProvider:
             how="left", on="commit_hash"
         )
 
+        ### Add column containing date
+        df_insertions_deletions_joined["commit_date"] = \
+            df_insertions_deletions_joined.commit_unix_time.apply(
+                lambda x: datetime.fromtimestamp(x)
+            )
+
         summary = df_insertions_deletions_joined.groupby(
             ["author_email", "author_name"]
         ).agg(
             number_of_insertions=("insertions", "sum"),
             number_of_deletions=("deletions", "sum"),
-            number_of_commits=("commit_hash", "count")
+            number_of_commits=("commit_hash", "count"),
+            min_date=("commit_date", "min"),
+            max_date=("commit_date", "max")
         ).reset_index()
 
         res = summary.assign(
             insertions_deletions_ratio=summary.number_of_insertions / summary.number_of_deletions
         )
+
+        # Calculated number of days between first and last contribution,
+        # transform dates to string
+        res["days_of_activity"] = res.max_date - res.min_date
+        res["days_of_activity"] = res["days_of_activity"].dt.days  # Retrieve days from timedelta object
+        res["min_date"] = res.min_date.apply(lambda x: x.strftime(_DATE_FORMAT))
+        res["max_date"] = res.max_date.apply(lambda x: x.strftime(_DATE_FORMAT))
 
         # In cases when number of deletions is queal to zero we will
         # replace Inf with max value + 1 (to indicate that the ratio
@@ -374,11 +392,14 @@ class CommitMessagesStatsProvider:
             - stemmed_words_count
         """
 
+        repo_name = os.path.basename(self.raw_data_path)
+        logger.info("Preparing messages stats tables for repo '{0}'".format(repo_name))
+
         messages_tab = self._load_required_data()
 
         # Split messages into single words
         words_lists = messages_tab.commit_message.map(
-            lambda x: x.split(" ")
+            lambda x: str(x).split(" ")
         )
 
         words_preprocessed = words_lists.apply(
