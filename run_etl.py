@@ -13,9 +13,9 @@ from config.paths import SUBMODULES_DIR, RAW_DATA_DIR
 from analysis.report_generator import ReportsGenerator
 
 if __name__ == "__main__":
-    #get_repos(repos_list=REPOS_TO_ANALYZE, submodules_dir=SUBMODULES_DIR)
-    #generate_raw_data_for_all_repos(SUBMODULES_DIR, RAW_DATA_DIR)
+    get_repos(repos_list=REPOS_TO_ANALYZE, submodules_dir=SUBMODULES_DIR)
+    generate_raw_data_for_all_repos(SUBMODULES_DIR, RAW_DATA_DIR)
     delete_repos(repos_dir=SUBMODULES_DIR)
-    #load_data_all_repos("raw_data")
-    #rg = ReportsGenerator()
-    #rg.generate_reports_for_all_repos()
+    load_data_all_repos("raw_data")
+    rg = ReportsGenerator()
+    rg.generate_reports_for_all_repos()
