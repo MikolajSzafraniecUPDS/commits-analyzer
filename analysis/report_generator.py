@@ -10,8 +10,7 @@ import shutil
 
 from typing import List
 from sqlalchemy import create_engine, Engine
-from config.paths import ANALYSIS_RESULTS_DIR, SUBMODULES_DIR
-from config.db_credentials import *
+from config.config import *
 from analysis.plots_and_tables_generator import PlotsAndTablesGenerator
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))

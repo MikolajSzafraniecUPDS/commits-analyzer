@@ -10,7 +10,7 @@ import logging.config
 from pathlib import Path
 from typing import List
 
-from config.raw_files_config import OUTPUT_FILES, GENERAL_INFO_FORMAT, HEADERS
+from config.config import OUTPUT_FILES, GENERAL_INFO_FORMAT, HEADERS
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")

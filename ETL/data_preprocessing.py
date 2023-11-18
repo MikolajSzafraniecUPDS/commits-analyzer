@@ -12,7 +12,7 @@ import logging.config
 
 from datetime import datetime
 from typing import Dict, List, Tuple
-from config.raw_files_config import OUTPUT_FILES
+from config.config import OUTPUT_FILES
 from nltk.stem import PorterStemmer
 
 # Format in which date will be stored in the Postgres database

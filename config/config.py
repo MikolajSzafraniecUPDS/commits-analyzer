@@ -1,8 +1,8 @@
 """
-File storing configuration
+Configuration file
 """
 
-# REPOSITORY TO ANALYZE
+### REPOSITORY TO ANALYZE
 # This section contains a list of repositories which we would like to analyze.
 # Please note that addresses should have a form of HTTPS urls to GitHub repo.
 
@@ -12,7 +12,7 @@ REPOS_TO_ANALYZE = [
     "https://github.com/boto/boto3"
 ]
 
-
+### DATABASE CREDENTIALS
 # Postgres database credentials - it has to be the same as in
 # docker/env_variables/global.env and .env files
 POSTGRES_HOST = "127.0.0.1"
@@ -21,6 +21,7 @@ POSTGRES_DB = "commits_analyzer"
 POSTGRES_USER = "commits_analyzer"
 POSTGRES_PASSWORD = "gheJasl34asFD"
 
+### POSTGRES TABLES NAMES
 # Names of postgres databases
 DB_TABLES_NAMES = {
     "general_info": "{0}_general_commits_info",
@@ -30,7 +31,7 @@ DB_TABLES_NAMES = {
     "messages_stemmed_words_freq": "{0}_messages_stemmed_words_freq"
 }
 
-# PATHS SECTION
+### LOCAL PATHS
 # Directory in which we would like to store repos as submodules
 # during the ETL process
 SUBMODULES_DIR = "submodules"
@@ -42,7 +43,7 @@ RAW_DATA_DIR = "raw_data"
 # Directory in which analysis results will be saved
 ANALYSIS_RESULTS_DIR = "results"
 
-### RAW FILES CONFIGURATION
+### CONFIGURATION OF RAW .CSV FILES
 # Format of file containing general information
 GENERAL_INFO_FORMAT = "'%H;%ae;%an;%at;%ce;%cn'"
 

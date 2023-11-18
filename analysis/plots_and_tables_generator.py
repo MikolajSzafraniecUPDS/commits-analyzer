@@ -9,11 +9,9 @@ import seaborn as sns
 import numpy as np
 import logging.config
 
-from config.db_tables_config import DB_TABLES_NAMES
+from config.config import *
 from typing import Dict
 from sqlalchemy import Engine
-from config.paths import ANALYSIS_RESULTS_DIR
-from config.reports_config import *
 from typing import List
 from wordcloud import WordCloud
 from datetime import datetime

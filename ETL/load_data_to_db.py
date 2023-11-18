@@ -9,8 +9,7 @@ import logging.config
 
 import pandas as pd
 from sqlalchemy import create_engine, Engine
-from config.db_credentials import *
-from config.db_tables_config import DB_TABLES_NAMES
+from config.config import *
 from ETL.data_preprocessing import GeneralTableProvider, AuthorsSummaryTableProvider, CommitMessagesStatsProvider
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
