@@ -11,8 +11,7 @@ from ETL.get_repos import get_repos
 from ETL.delete_repos import delete_repos
 from ETL.raw_data_retriever import generate_raw_data_for_all_repos
 from ETL.load_data_to_db import load_data_all_repos
-from config.repos_to_analyze import REPOS_TO_ANALYZE
-from config.paths import SUBMODULES_DIR, RAW_DATA_DIR
+from config.config import REPOS_TO_ANALYZE, SUBMODULES_DIR, RAW_DATA_DIR
 from analysis.report_generator import ReportsGenerator
 
 def _get_repos_names() -> List[str]:
