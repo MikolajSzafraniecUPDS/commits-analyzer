@@ -1,6 +1,3 @@
 [submodule "submodules/numpy"]
 	path = submodules/numpy
 	url = https://github.com/numpy/numpy
-[submodule "submodules/boto3"]
-	path = submodules/boto3
-	url = https://github.com/boto/boto3
