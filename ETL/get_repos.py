@@ -6,6 +6,7 @@ import subprocess
 import os
 from typing import List
 
+
 def _store_single_repo_as_submodule(repo_url: str) -> None:
     """
     Clone chosen repository as a submodule. We use submodule

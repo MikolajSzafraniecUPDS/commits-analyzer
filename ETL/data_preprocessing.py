@@ -12,7 +12,7 @@ import logging.config
 
 from datetime import datetime
 from typing import Dict, List, Tuple
-from config.raw_files_config import OUTPUT_FILES
+from config.config import OUTPUT_FILES
 from nltk.stem import PorterStemmer
 
 # Format in which date will be stored in the Postgres database
@@ -271,7 +271,8 @@ class AuthorsSummaryTableProvider:
         # Calculated number of days between first and last contribution,
         # transform dates to string
         res["days_of_activity"] = res.max_date - res.min_date
-        res["days_of_activity"] = res["days_of_activity"].dt.days  # Retrieve days from timedelta object
+        res["days_of_activity"] = res["days_of_activity"].dt.days + 1  # Retrieve days from timedelta object, add one because in case of
+                                                                       # single commit we would get 0
         res["min_date"] = res.min_date.apply(lambda x: x.strftime(_DATE_FORMAT))
         res["max_date"] = res.max_date.apply(lambda x: x.strftime(_DATE_FORMAT))
 
