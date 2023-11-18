@@ -271,7 +271,8 @@ class AuthorsSummaryTableProvider:
         # Calculated number of days between first and last contribution,
         # transform dates to string
         res["days_of_activity"] = res.max_date - res.min_date
-        res["days_of_activity"] = res["days_of_activity"].dt.days  # Retrieve days from timedelta object
+        res["days_of_activity"] = res["days_of_activity"].dt.days + 1  # Retrieve days from timedelta object, add one because in case of
+                                                                       # single commit we would get 0
         res["min_date"] = res.min_date.apply(lambda x: x.strftime(_DATE_FORMAT))
         res["max_date"] = res.max_date.apply(lambda x: x.strftime(_DATE_FORMAT))
 
