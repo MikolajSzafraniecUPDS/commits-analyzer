@@ -1,3 +1,6 @@
 [submodule "submodules/numpy"]
 	path = submodules/numpy
 	url = https://github.com/numpy/numpy
+[submodule "submodules/dtw-python"]
+	path = submodules/dtw-python
+	url = https://github.com/DynamicTimeWarping/dtw-python
