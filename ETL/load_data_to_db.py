@@ -8,7 +8,8 @@ import os
 import logging.config
 
 import pandas as pd
-from sqlalchemy import create_engine, Engine
+from database.get_db_engine import get_db_engine
+from sqlalchemy import Engine
 from config.config import *
 from ETL.data_preprocessing import GeneralTableProvider, AuthorsSummaryTableProvider, CommitMessagesStatsProvider
 
@@ -101,15 +102,7 @@ def load_data_all_repos(raw_data_dir: str) -> None:
     :param raw_data_dir: directory where raw data is stored
     """
 
-    connection_string = "postgresql://{username}:{password}@{host}:{port}/{db_name}".format(
-        username=POSTGRES_USER,
-        password=POSTGRES_PASSWORD,
-        host=POSTGRES_HOST,
-        port=POSTGRES_PORT,
-        db_name=POSTGRES_DB
-    )
-    logger.info("Creating DB engine")
-    engine = create_engine(connection_string)
+    engine = get_db_engine()
 
     # Get paths to all repos in given dir
     raw_data_paths = [

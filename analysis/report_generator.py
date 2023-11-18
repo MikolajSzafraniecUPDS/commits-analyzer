@@ -12,6 +12,7 @@ from typing import List
 from sqlalchemy import create_engine, Engine
 from config.config import *
 from analysis.plots_and_tables_generator import PlotsAndTablesGenerator
+from database.get_db_engine import get_db_engine
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
@@ -28,7 +29,7 @@ class ReportsGenerator:
         """
 
         self.repos_names = self._get_repos_names() if repos_names is None else repos_names
-        self.db_engine = self._get_db_engine()
+        self.db_engine = get_db_engine()
 
     @staticmethod
     def _get_repos_names() -> List[str]:
@@ -45,25 +46,6 @@ class ReportsGenerator:
         ]
 
         return repos_names
-
-    @staticmethod
-    def _get_db_engine() -> Engine:
-        """
-        Get database Engine object
-
-        :return: Engine object
-        """
-
-        connection_string = "postgresql://{username}:{password}@{host}:{port}/{db_name}".format(
-            username=POSTGRES_USER,
-            password=POSTGRES_PASSWORD,
-            host=POSTGRES_HOST,
-            port=POSTGRES_PORT,
-            db_name=POSTGRES_DB
-        )
-        logger.info("Creating DB engine")
-        engine = create_engine(connection_string)
-        return engine
 
     @staticmethod
     def _md_report_to_pdf(input_file_path: str, output_file_path: str) -> None:

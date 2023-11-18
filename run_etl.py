@@ -1,7 +1,7 @@
 """
 Run whole ETL process, starting from cloning repositories as submodules,
-through retrieving commits data to loading preprocessed and aggregated
-data to the DB
+through retrieving commits data, loading preprocessed and aggregated
+data to the DB to generate analysis and deploying a dashboard.
 """
 
 import os
