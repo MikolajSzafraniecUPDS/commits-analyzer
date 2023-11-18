@@ -9,7 +9,7 @@ This file contains analytical summary for given repository. It consists of follo
 - **Contributors activity in terms of time** - number of commits and insertions per day for given contributors
 
 ## 1. Peak contribution times
-Tables below shows the sum of commits per time of a day:
+Table below shows the sum of commits per time of a day:
 
 ![commits_time_of_day_table](assets/commits_time_of_day_table.png)
 

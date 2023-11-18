@@ -12,9 +12,9 @@ from config.db_tables_config import DB_TABLES_NAMES
 from typing import Dict
 from sqlalchemy import Engine
 from config.paths import ANALYSIS_RESULTS_DIR
+from typing import List
 
 import matplotlib.pyplot as plt
-from pandas.plotting import table
 
 
 class PlotsAndTablesGenerator:
@@ -58,28 +58,32 @@ class PlotsAndTablesGenerator:
 
         return res
 
-    # @staticmethod
-    # def _tab_to_png_image(input_tab: pd.DataFrame, output_dir: str) -> None:
-    #     """
-    #     Save pandas table as .png image
-    #
-    #     :param input_tab: table to convert to image
-    #     :param output_dir: path to save the table
-    #     """
-    #
-    #     ax = plt.subplot(frame_on=False)
-    #     ax.xaxis.set_visible(False)
-    #     ax.yaxis.set_visible(False)
-    #
-    #     table(ax, input_tab)
-    #
-    #     plt.savefig(output_dir)
-
     @staticmethod
-    def _render_mpl_table(data, col_width=3.0, row_height=0.625, font_size=14,
-                         header_color='#40466e', row_colors=['#f1f1f2', 'w'], edge_color='w',
+    def _render_pandas_table(
+            data: pd.DataFrame, col_width: float= 3.0, row_height: float = 0.625,
+            font_size: int = 14, header_color: str ='#40466e',
+            row_colors: List[str] = ['#f1f1f2', 'w'], edge_color='w',
                          bbox=[0, 0, 1, 1], header_columns=0,
                          ax=None, **kwargs):
+
+        """
+        Render pandas table as a .png image.
+
+        :param data: input table
+        :param col_width: width of column
+        :param row_height: height of a row
+        :param font_size: font size
+        :param header_color: color of headers
+        :param row_colors: color of rows
+        :param edge_color: colors of edge
+        :param bbox: a bounding box to draw the table into
+        :param header_columns: number of row storing headers
+        :param ax: pyplot axis
+        :param kwargs: additional params which will bepassed
+            to the ax.table method
+        :return:
+        """
+
         if ax is None:
             size = (np.array(data.shape[::-1]) + np.array([0, 1])) * np.array([col_width, row_height])
             fig, ax = plt.subplots(figsize=size)
@@ -119,10 +123,10 @@ class PlotsAndTablesGenerator:
             "commit_hour", ascending=True
         )
 
-        #self._tab_to_png_image(commits_time_of_day_table, output_path_tab)
-        fig, ax = self._render_mpl_table(commits_time_of_day_table, header_columns=0, col_width=4.0)
+        fig, ax = self._render_pandas_table(commits_time_of_day_table, header_columns=0, col_width=4.0)
         fig.savefig(output_path_tab)
 
         fig, ax = plt.subplots()
         sns.barplot(commits_time_of_day_table, x="commit_hour", y="number_of_commits", ax=ax)
         plt.savefig(output_path_img)
+

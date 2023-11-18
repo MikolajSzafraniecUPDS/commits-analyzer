@@ -10,10 +10,22 @@ from ETL.raw_data_retriever import generate_raw_data_for_all_repos
 from ETL.load_data_to_db import load_data_all_repos
 from config.repos_to_analyze import REPOS_TO_ANALYZE
 from config.paths import SUBMODULES_DIR, RAW_DATA_DIR
-
+from analysis.plots_and_tables_generator import PlotsAndTablesGenerator
+from sqlalchemy import create_engine
+from config.db_credentials import *
 
 if __name__ == "__main__":
     #get_repos(repos_list=REPOS_TO_ANALYZE, submodules_dir=SUBMODULES_DIR)
     #generate_raw_data_for_all_repos(SUBMODULES_DIR, RAW_DATA_DIR)
     #delete_repos(repos_dir=SUBMODULES_DIR)
-    load_data_all_repos("raw_data")
+    #load_data_all_repos("raw_data")
+    conn_string = "postgresql://{username}:{password}@{host}:{port}/{db_name}".format(
+        username=POSTGRES_USER,
+        password=POSTGRES_PASSWORD,
+        host=POSTGRES_HOST,
+        port=POSTGRES_PORT,
+        db_name=POSTGRES_DB
+    )
+    engine = create_engine(conn_string)
+    ptg = PlotsAndTablesGenerator("boto3", db_engine=engine)
+    ptg.generate_commits_time_of_day_table_and_plot()
