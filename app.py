@@ -14,10 +14,10 @@ from dashboard.tabs_components import *
 
 
 # Initialize the app
-#external_stylesheets = [dbc.themes.CERULEAN]
-#app = Dash("commits_analyzer", external_stylesheets=external_stylesheets)
+external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = Dash(
     "commits_analyzer",
+    external_stylesheets=external_stylesheets,
     suppress_callback_exceptions=True  # We generate tab content dynamically, so this flag must be set as True
 )
 
@@ -35,7 +35,8 @@ app.layout = html.Div([
     ),
     dcc.Tabs(id="section-selection", value="commits-timeline", children=[
         dcc.Tab(label="Commits timeline", value="commits-timeline"),
-        dcc.Tab(label="Top contributors", value="top-contributors")
+        dcc.Tab(label="Top contributors", value="top-contributors"),
+        dcc.Tab(label="Words frequency", value="words-frequency")
     ]),
     html.Div(id="output-tab")
 ])
@@ -50,6 +51,8 @@ def render_tab_content(tab_name: str):
         return render_commits_timeline_div()
     elif tab_name == "top-contributors":
         return render_top_contributors_div()
+    elif tab_name == "words-frequency":
+        return render_words_frequency_div()
 
 
 # Load callbacks definitions from external file

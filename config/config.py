@@ -102,4 +102,7 @@ HISTOGRAM_BINS_NUM = 50
 ### DASHBOARD CONFIG
 # Number of top n contributors in terms of commits and insertions volume
 # to show in dashboard tables
-TOP_N_CONTRIBUTORS_DASHBOARD = 50
+TOP_N_CONTRIBUTORS_DASHBOARD = 20
+
+# Number of top n words to show in pattern analysis
+TOP_N_WORDS_DASHBOARD = 25
