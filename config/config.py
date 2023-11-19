@@ -106,3 +106,7 @@ TOP_N_CONTRIBUTORS_DASHBOARD = 20
 
 # Number of top n words to show in pattern analysis
 TOP_N_WORDS_DASHBOARD = 25
+
+# Insertions deletions outliers border as number of standard
+# deviations added to the mean value
+DASHBOARD_SD_OUTLIERS_BORDER = 1

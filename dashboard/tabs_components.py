@@ -4,6 +4,8 @@ Definitions of components for each tab of the dashboard.
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html, dash_table
+from database.get_db_engine import get_db_engine
+from typing import List
 
 
 def render_commits_timeline_div() -> html.Div:
@@ -81,6 +83,56 @@ def render_words_frequency_div() -> html.Div:
                 html.H4("Word frequency table"),
                 dash_table.DataTable(
                     id="word-frequency-tab",
+                    fill_width=False
+                )
+            ])
+        ])
+    ])
+
+    return res
+
+
+def render_commits_heatmap_tab() -> html.Div:
+    """
+    Render tab containing heatmap presenting number of commits
+    per day.
+
+    :return: output Dash Div
+    """
+    res = html.Div([
+        html.H3("Commits heatmap"),
+        dbc.Row([
+            dbc.Col([
+                html.H4("Select commit author"),
+                dcc.Dropdown(
+                    value="All",
+                    id="commits-author-to-heatmap"
+                ),
+                dcc.Graph(id="commits-heatmap")
+            ]),
+        ])
+    ])
+
+    return res
+
+
+def render_insertions_distributions_tab() -> html.Div:
+    """
+    Render tab containing visualization of number of insertions
+    across all commits in the form of histogram.
+
+    :return: output Dash Div
+    """
+
+    res = html.Div([
+        html.H3("Distribution of number of insertions"),
+        dbc.Row([
+            dbc.Col([
+                dcc.Graph(id="insertions-distributions-graph")
+            ]),
+            dbc.Col([
+                dash_table.DataTable(
+                    id="insertions-distribution-stats",
                     fill_width=False
                 )
             ])

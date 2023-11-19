@@ -14,7 +14,7 @@ from dashboard.tabs_components import *
 
 
 # Initialize the app
-external_stylesheets = [dbc.themes.BOOTSTRAP]
+external_stylesheets = [dbc.themes.ZEPHYR]
 app = Dash(
     "commits_analyzer",
     external_stylesheets=external_stylesheets,
@@ -36,7 +36,9 @@ app.layout = html.Div([
     dcc.Tabs(id="section-selection", value="commits-timeline", children=[
         dcc.Tab(label="Commits timeline", value="commits-timeline"),
         dcc.Tab(label="Top contributors", value="top-contributors"),
-        dcc.Tab(label="Words frequency", value="words-frequency")
+        dcc.Tab(label="Words frequency", value="words-frequency"),
+        dcc.Tab(label="Commits heatmap", value="commits-heatmap"),
+        dcc.Tab(label="Insertions distribution", value="insertions-distributions")
     ]),
     html.Div(id="output-tab")
 ])
@@ -53,6 +55,10 @@ def render_tab_content(tab_name: str):
         return render_top_contributors_div()
     elif tab_name == "words-frequency":
         return render_words_frequency_div()
+    elif tab_name == "commits-heatmap":
+        return render_commits_heatmap_tab()
+    else:
+        return render_insertions_distributions_tab()
 
 
 # Load callbacks definitions from external file
