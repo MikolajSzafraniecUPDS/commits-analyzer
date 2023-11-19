@@ -15,7 +15,7 @@ from threading import Timer
 import webbrowser
 
 # Initialize the app
-external_stylesheets = [dbc.themes.ZEPHYR]
+external_stylesheets = [dbc.themes.BOOTSTRAP]
 app = Dash(
     "commits_analyzer",
     external_stylesheets=external_stylesheets,
