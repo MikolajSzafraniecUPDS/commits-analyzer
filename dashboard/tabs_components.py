@@ -24,7 +24,7 @@ def render_commits_timeline_div() -> html.Div:
                     value="Day",
                     id="timeline-agg-period"
                 )
-            ]),
+            ], width=3),
             dbc.Col([
                 dcc.Graph(id="commits-timeline-graph")
             ])

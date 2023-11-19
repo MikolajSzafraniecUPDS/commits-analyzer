@@ -3,15 +3,16 @@ Dash application
 """
 
 # Import packages
-import pandas as pd
-import dash_bootstrap_components as dbc
+import os
 
 from dash import Dash, html, dcc, Input, Output, callback
-from database.get_db_engine import get_db_engine
 from dashboard.utils import get_names_of_availables_repos
 from dashboard.callbacks import get_callbacks
 from dashboard.tabs_components import *
+from config.config import DASH_PORT
 
+from threading import Timer
+import webbrowser
 
 # Initialize the app
 external_stylesheets = [dbc.themes.ZEPHYR]
@@ -64,6 +65,12 @@ def render_tab_content(tab_name: str):
 # Load callbacks definitions from external file
 get_callbacks(app)
 
+# Open dashboard in a Browser
+def open_browser():
+    if not os.environ.get("WERKZEUG_RUN_MAIN"):
+        webbrowser.open_new("http://localhost:{}".format(DASH_PORT))
+
 # Run the app
 if __name__ == '__main__':
+    Timer(1, open_browser).start();
     app.run(debug=True)

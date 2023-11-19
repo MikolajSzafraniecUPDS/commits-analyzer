@@ -110,3 +110,14 @@ TOP_N_WORDS_DASHBOARD = 25
 # Insertions deletions outliers border as number of standard
 # deviations added to the mean value
 DASHBOARD_SD_OUTLIERS_BORDER = 1
+
+# Dash port
+DASH_PORT = 8050
+
+### PIPELINE CONFIGURATION
+
+# Clean /raw_data directory after pipeline is finished?
+CLEAN_RAW_DATA = True
+
+# Launch dashboard at the end of pipeline
+RUN_DASHBOARD = True
