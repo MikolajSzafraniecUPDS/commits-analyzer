@@ -2,6 +2,8 @@
 Get database engine
 """
 
+import os
+
 import logging.config
 from config.config import *
 from sqlalchemy import create_engine, Engine
