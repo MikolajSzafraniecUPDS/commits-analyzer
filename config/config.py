@@ -99,4 +99,7 @@ SD_OUTLIERS_BORDER = 3
 # in an automated way
 HISTOGRAM_BINS_NUM = 50
 
-
+### DASHBOARD CONFIG
+# Number of top n contributors in terms of commits and insertions volume
+# to show in dashboard tables
+TOP_N_CONTRIBUTORS_DASHBOARD = 50
