@@ -338,6 +338,8 @@ def get_callbacks(app: Dash):
 
         histogram_fig = _generate_histogram_of_insertions(df)
         insertions_stats = df.insertions.describe().to_frame(
-        ).reset_index().rename(columns={"index": "Measure"}).round(2)
+        ).reset_index().rename(
+            columns={"index": "Measure", "insertions": "Insertions"}
+        ).round(2)
 
         return histogram_fig, insertions_stats.to_dict("records")

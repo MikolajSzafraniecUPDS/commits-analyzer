@@ -9,7 +9,7 @@ from dash import Dash, html, dcc, Input, Output, callback
 from dashboard.utils import get_names_of_availables_repos
 from dashboard.callbacks import get_callbacks
 from dashboard.tabs_components import *
-from config.config import DASH_PORT
+from config.config import DASH_PORT, LAUNCH_BROWSER
 
 from threading import Timer
 import webbrowser
@@ -49,7 +49,15 @@ app.layout = html.Div([
     Output("output-tab", "children"),
     Input("section-selection", "value")
 )
-def render_tab_content(tab_name: str):
+def render_tab_content(tab_name: str) -> html.Div:
+    """
+    Render tab content dynamically. Such an approach is recommended
+    due to the fact, that otherwise content for all tabs would be
+    generated at the same moment, which could cause a performance
+    issues.
+
+    :param tab_name: id of tab to show
+    """
     if tab_name == "commits-timeline":
         return render_commits_timeline_div()
     elif tab_name == "top-contributors":
@@ -67,10 +75,14 @@ get_callbacks(app)
 
 # Open dashboard in a Browser
 def open_browser():
+    """
+    Open browser automatically when launching an app.
+    """
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
         webbrowser.open_new("http://localhost:{}".format(DASH_PORT))
 
 # Run the app
 if __name__ == '__main__':
-    Timer(1, open_browser).start();
+    if LAUNCH_BROWSER:
+        Timer(1, open_browser).start();
     app.run(debug=True)

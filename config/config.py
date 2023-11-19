@@ -114,6 +114,10 @@ DASHBOARD_SD_OUTLIERS_BORDER = 1
 # Dash port
 DASH_PORT = 8050
 
+# Flag indicating whether to automatically open a browser when
+# launching an app
+LAUNCH_BROWSER = True
+
 ### PIPELINE CONFIGURATION
 
 # Clean /raw_data directory after pipeline is finished?
