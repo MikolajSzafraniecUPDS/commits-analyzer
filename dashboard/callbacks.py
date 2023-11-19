@@ -57,13 +57,17 @@ def get_callbacks(app: Dash):
     # Generate commit timeline plot
     @app.callback(
         Output("commits-timeline-graph", "figure"),
-        Input("repo_selector", "value")
+        [
+            Input("repo_selector", "value"),
+            Input("timeline-agg-period", "value")
+        ]
     )
-    def update_commits_timeline(repo_name: str):
+    def update_commits_timeline(repo_name: str, agg_period: str):
         """
         Update plot showing commit timeline in the form of time series
 
         :param repo_name: name of selected repository
+        :param agg_period: aggregation period - might be a day or month
         """
         tab_name = DB_TABLES_NAMES.get("general_info").format(repo_name)
         sql_query = 'SELECT date_str, commit_hash FROM public."{0}"'.format(
@@ -71,9 +75,21 @@ def get_callbacks(app: Dash):
         )
         df = pd.read_sql_query(sql_query, _ENGINE)
         df["date_dt"] = pd.to_datetime(df.date_str)
-        df_agg = df.groupby("date_dt").agg(
-            commits_num=("commit_hash", "count")
-        ).reset_index()
+        if agg_period == "Day":
+            df_agg = df.groupby("date_dt").agg(
+                commits_num=("commit_hash", "count")
+            ).reset_index()
+        else:
+            df_agg = df.assign(
+                date_dt=pd.to_datetime(df.date_str).dt.strftime("%Y-%m")
+            ).groupby(
+                "date_dt"
+            ).agg(
+                commits_num=("commit_hash", "count")
+            ).reset_index()
+
+            df_agg["date_dt"] = pd.to_datetime(df_agg.date_dt)
+
         fig = px.line(df_agg, x="date_dt", y = "commits_num")
         return fig
 

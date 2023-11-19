@@ -16,7 +16,19 @@ def render_commits_timeline_div() -> html.Div:
     """
     res = html.Div([
         html.H3("Commits timeline"),
-        dcc.Graph(id="commits-timeline-graph")
+        dbc.Row([
+            dbc.Col([
+                html.H4("Select aggregation period:"),
+                dcc.Dropdown(
+                    ["Day", "Month"],
+                    value="Day",
+                    id="timeline-agg-period"
+                )
+            ]),
+            dbc.Col([
+                dcc.Graph(id="commits-timeline-graph")
+            ])
+        ])
     ])
 
     return res
