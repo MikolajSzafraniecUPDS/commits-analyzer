@@ -21,6 +21,7 @@ import matplotlib.pyplot as plt
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
 
+
 class PlotsAndTablesGenerator:
 
     """
