@@ -13,10 +13,12 @@ from ETL.get_repos import get_repos
 from ETL.delete_repos import delete_repos
 from ETL.raw_data_retriever import generate_raw_data_for_all_repos
 from ETL.load_data_to_db import load_data_all_repos
-from config.config import *
+from config import config
 from analysis.report_generator import ReportsGenerator
+import logging.config
 
-import webbrowser
+logging.config.fileConfig(os.path.join("config", "logging.conf"))
+logger = logging.getLogger("consoleLogger")
 
 def _get_repos_names() -> List[str]:
     """
@@ -27,7 +29,7 @@ def _get_repos_names() -> List[str]:
 
     res = [
         os.path.basename(path)
-        for path in REPOS_TO_ANALYZE
+        for path in config.REPOS_TO_ANALYZE
     ]
 
     return res
@@ -37,7 +39,7 @@ def _clean_raw_files() -> None:
     """
     Clean raw .csv files after pipeline is finished
     """
-    raw_data_dirs = [path for path in os.scandir(RAW_DATA_DIR) if path.is_dir()]
+    raw_data_dirs = [path for path in os.scandir(config.RAW_DATA_DIR) if path.is_dir()]
     for raw_dir in raw_data_dirs:
         shutil.rmtree(raw_dir)
 
@@ -49,17 +51,52 @@ def _run_dashboard() -> None:
     subprocess.run("python app.py")
 
 
+def _config_to_str():
+    """
+    Convert configuration to string in order to pass it to logger.
+    """
+
+    output_str = ""
+    for single_setting in dir(config):
+        if not single_setting.startswith("__"):
+            setting_val = "{0}: {1}".format(
+                single_setting,
+                getattr(config, single_setting)
+            ) + "\n"
+            output_str += setting_val
+
+    return output_str
 
 if __name__ == "__main__":
-    get_repos(repos_list=REPOS_TO_ANALYZE, submodules_dir=SUBMODULES_DIR)
-    generate_raw_data_for_all_repos(SUBMODULES_DIR, RAW_DATA_DIR)
-    delete_repos(repos_dir=SUBMODULES_DIR)
-    load_data_all_repos("raw_data")
+
+    logger.info("Launching commits-analyzer pipeline.")
+
+    config_str = _config_to_str()
+    logger.info("\nConfiguration:\n{0}".format(config_str))
+
+    logger.info("Cloning repositories.")
+    get_repos(repos_list=config.REPOS_TO_ANALYZE, submodules_dir=config.SUBMODULES_DIR)
+
+    logger.info("Generating raw data in the format of .csv files.")
+    generate_raw_data_for_all_repos(config.SUBMODULES_DIR, config.RAW_DATA_DIR)
+
+    logger.info("Deleting submodules.")
+    delete_repos(repos_dir=config.SUBMODULES_DIR)
+
+    logger.info("Uploading data to Postgres DB.")
+    load_data_all_repos(config.RAW_DATA_DIR)
+
+    logger.info("Generating .md and .pdf reports.")
     repos_names = _get_repos_names()
     rg = ReportsGenerator(repos_names=repos_names)
     rg.generate_reports_for_all_repos()
-    if CLEAN_RAW_DATA:
-        _clean_raw_files()
-    if RUN_DASHBOARD:
-        _run_dashboard()
 
+    logger.info("Reports generated")
+
+    if config.CLEAN_RAW_DATA:
+        logger.info("Deleting raw files.")
+        _clean_raw_files()
+
+    if config.RUN_DASHBOARD:
+        logger.info("Hosting dashboard at localhost, port: {0}".format(config.DASH_PORT))
+        _run_dashboard()
