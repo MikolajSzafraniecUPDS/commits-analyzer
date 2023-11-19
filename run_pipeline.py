@@ -48,7 +48,7 @@ def _run_dashboard() -> None:
     """
     Run Dash application
     """
-    subprocess.run("python app.py")
+    subprocess.run("python app.py", shell=True)
 
 
 def _config_to_str():
