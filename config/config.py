@@ -21,28 +21,6 @@ POSTGRES_DB = "commits_analyzer"
 POSTGRES_USER = "commits_analyzer"
 POSTGRES_PASSWORD = "gheJasl34asFD"
 
-### POSTGRES TABLES NAMES
-# Names of postgres databases
-DB_TABLES_NAMES = {
-    "general_info": "{0}_general_commits_info",
-    "authors_stats": "{0}_authors_stats",
-    "messages_all_words": "{0}_messages_all_words",
-    "messages_raw_words_freq": "{0}_messages_raw_words_freq",
-    "messages_stemmed_words_freq": "{0}_messages_stemmed_words_freq"
-}
-
-### LOCAL PATHS
-# Directory in which we would like to store repos as submodules
-# during the ETL process
-SUBMODULES_DIR = "submodules"
-
-# Directory in which we would like to store raw .csv files during the
-# ETL process
-RAW_DATA_DIR = "raw_data"
-
-# Directory in which analysis results will be saved
-ANALYSIS_RESULTS_DIR = "results"
-
 ### CONFIGURATION OF RAW .CSV FILES
 # Format of file containing general information
 GENERAL_INFO_FORMAT = "'%H;%ae;%an;%at;%ce;%cn'"
@@ -71,6 +49,28 @@ HEADERS = {
     "commits_messages": ["commit_hash", "commit_message"],
     "insertions_deletions": ["commit_hash", "insertions", "deletions"]
 }
+
+### POSTGRES TABLES NAMES
+# Names of postgres databases
+DB_TABLES_NAMES = {
+    "general_info": "{0}_general_commits_info",
+    "authors_stats": "{0}_authors_stats",
+    "messages_all_words": "{0}_messages_all_words",
+    "messages_raw_words_freq": "{0}_messages_raw_words_freq",
+    "messages_stemmed_words_freq": "{0}_messages_stemmed_words_freq"
+}
+
+### LOCAL PATHS
+# Directory in which we would like to store repos as submodules
+# during the ETL process
+SUBMODULES_DIR = "submodules"
+
+# Directory in which we would like to store raw .csv files during the
+# ETL process
+RAW_DATA_DIR = "raw_data"
+
+# Directory in which analysis results will be saved
+ANALYSIS_RESULTS_DIR = "results"
 
 ### CONFIGURATION OF OUTPUT REPORTS
 # How many top n contributors show in the tables summarizing contributors activity
@@ -113,6 +113,10 @@ DASHBOARD_SD_OUTLIERS_BORDER = 1
 
 # Dash port
 DASH_PORT = 8050
+
+# Flag indicating whether to automatically open a browser when
+# launching an app
+LAUNCH_BROWSER = True
 
 ### PIPELINE CONFIGURATION
 
