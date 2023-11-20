@@ -5,6 +5,8 @@ database, through cloning chosen repositories, retrieving raw data using shell *
 preprocessing and uploading data to the database, generating markdown and .pdf reports to deploying
 dashboard on localhost, developed using *Dash*.
 
+**IMPORTANT NOTE** - pipeline in its current form only works on Linux system.
+
 ## Usage
 
 ### Requirements
