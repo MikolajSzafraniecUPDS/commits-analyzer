@@ -3,7 +3,7 @@ FROM python:3.10-slim-bullseye
 USER root
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libpq-dev python3-dev libpq-dev libyaml-dev gcc musl-dev wait-for-it \
+    libpq-dev python3-dev libpq-dev libyaml-dev gcc musl-dev wait-for-it git-all \
  && rm -rf /var/lib/apt/lists/* \
  && apt-get clean
 

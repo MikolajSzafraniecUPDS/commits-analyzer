@@ -89,7 +89,7 @@ if __name__ == "__main__":
     # logger.info("Uploading data to Postgres DB.")
     # load_data_all_repos(config.RAW_DATA_DIR)
 
-    _run_etl()
+    etl_reponse = _run_etl()
 
     # logger.info("Generating .md and .pdf reports.")
     # repos_names = _get_repos_names()
