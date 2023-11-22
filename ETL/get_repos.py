@@ -26,22 +26,6 @@ def _store_single_repo_as_submodule(repo_url: str) -> None:
     )
 
 
-def _check_is_git_repo() -> bool:
-    """
-    Verify whether current workdir is a git repository.
-
-    :return: bool indicating whether current workdir is a git repo or not
-    """
-    proc = subprocess.Popen(
-        ["git", "rev-parse", "--is-inside-work-tree"],
-        stdout=subprocess.PIPE
-    )
-
-    out, err = proc.communicate()
-    res = bool(out.decode())
-    return res
-
-
 def get_repos(repos_list: List[str], submodules_dir: str) -> None:
     """
     Clone all repositories specified in the configuration file as
@@ -54,8 +38,6 @@ def get_repos(repos_list: List[str], submodules_dir: str) -> None:
     """
     initial_dir = os.getcwd()
     os.chdir(submodules_dir)
-    if not _check_is_git_repo():
-        subprocess.run(["git", "init"])
 
     for repo_url in repos_list:
         _store_single_repo_as_submodule(repo_url)

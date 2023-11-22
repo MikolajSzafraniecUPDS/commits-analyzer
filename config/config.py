@@ -64,7 +64,7 @@ DB_TABLES_NAMES = {
 ### LOCAL PATHS
 # Directory in which we would like to store repos as submodules
 # during the ETL process
-SUBMODULES_DIR = "submodules"
+SUBMODULES_DIR = "submodules_repo/submodules"
 
 # Directory in which we would like to store raw .csv files during the
 # ETL process

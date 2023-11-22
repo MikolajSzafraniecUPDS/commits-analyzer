@@ -110,6 +110,8 @@ def load_data_all_repos(raw_data_dir: str) -> None:
         for f in os.scandir(raw_data_dir) if f.is_dir()
     ]
 
+    logger.info("Found following directories with data: {0}".format(raw_data_paths))
+
     for single_path in raw_data_paths:
         load_data_single_repo(
             single_path, db_engine=engine

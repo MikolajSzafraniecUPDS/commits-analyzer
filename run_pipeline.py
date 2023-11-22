@@ -66,7 +66,7 @@ def _config_to_str():
 
 
 def _run_etl():
-    r = requests.get("http://127.0.0.1:5000/run_etl")
+    r = requests.get("http://127.0.0.1:5000/run_etl", timeout=1000)
     return r
 
 
@@ -90,6 +90,9 @@ if __name__ == "__main__":
     # load_data_all_repos(config.RAW_DATA_DIR)
 
     etl_reponse = _run_etl()
+    print("Response code: {0}, response message: {1}".format(
+        etl_reponse.status_code, etl_reponse.content)
+    )
 
     # logger.info("Generating .md and .pdf reports.")
     # repos_names = _get_repos_names()

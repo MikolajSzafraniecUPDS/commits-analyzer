@@ -13,4 +13,13 @@ COPY ETL/requirements.txt .
 COPY ETL/etl_app.py .
 RUN pip install --no-cache -r requirements.txt
 
+RUN git config --global user.name "ETL process"
+RUN git config --global user.email "fakemail@fakemail.com"
+
+RUN mkdir -p submodules_repo/submodules
+WORKDIR submodules_repo
+RUN git init
+
+WORKDIR /
+
 CMD ["python", "etl_app.py"]
