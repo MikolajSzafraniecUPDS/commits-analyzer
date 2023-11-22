@@ -102,7 +102,7 @@ def load_data_all_repos(raw_data_dir: str) -> None:
     :param raw_data_dir: directory where raw data is stored
     """
 
-    engine = get_db_engine()
+    engine = get_db_engine(inside_compose_network=True)
 
     # Get paths to all repos in given dir
     raw_data_paths = [

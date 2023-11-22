@@ -7,12 +7,9 @@ data to the DB to generate analysis and deploying a dashboard.
 import os
 import subprocess
 import shutil
+import requests
 
 from typing import List
-from ETL.get_repos import get_repos
-from ETL.delete_repos import delete_repos
-from ETL.raw_data_retriever import generate_raw_data_for_all_repos
-from ETL.load_data_to_db import load_data_all_repos
 from config import config
 from analysis.report_generator import ReportsGenerator
 import logging.config
@@ -67,6 +64,12 @@ def _config_to_str():
 
     return output_str
 
+
+def _run_etl():
+    r = requests.get("http://127.0.0.1:5000/run_etl")
+    return r
+
+
 if __name__ == "__main__":
 
     logger.info("Launching commits-analyzer pipeline.")
@@ -74,29 +77,31 @@ if __name__ == "__main__":
     config_str = _config_to_str()
     logger.info("\nConfiguration:\n{0}".format(config_str))
 
-    logger.info("Cloning repositories.")
-    get_repos(repos_list=config.REPOS_TO_ANALYZE, submodules_dir=config.SUBMODULES_DIR)
+    # logger.info("Cloning repositories.")
+    # get_repos(repos_list=config.REPOS_TO_ANALYZE, submodules_dir=config.SUBMODULES_DIR)
+    #
+    # logger.info("Generating raw data in the format of .csv files.")
+    # generate_raw_data_for_all_repos(config.SUBMODULES_DIR, config.RAW_DATA_DIR)
+    #
+    # logger.info("Deleting submodules.")
+    # delete_repos(repos_dir=config.SUBMODULES_DIR)
+    #
+    # logger.info("Uploading data to Postgres DB.")
+    # load_data_all_repos(config.RAW_DATA_DIR)
 
-    logger.info("Generating raw data in the format of .csv files.")
-    generate_raw_data_for_all_repos(config.SUBMODULES_DIR, config.RAW_DATA_DIR)
+    _run_etl()
 
-    logger.info("Deleting submodules.")
-    delete_repos(repos_dir=config.SUBMODULES_DIR)
-
-    logger.info("Uploading data to Postgres DB.")
-    load_data_all_repos(config.RAW_DATA_DIR)
-
-    logger.info("Generating .md and .pdf reports.")
-    repos_names = _get_repos_names()
-    rg = ReportsGenerator(repos_names=repos_names)
-    rg.generate_reports_for_all_repos()
-
-    logger.info("Reports generated")
-
-    if config.CLEAN_RAW_DATA:
-        logger.info("Deleting raw files.")
-        _clean_raw_files()
-
-    if config.RUN_DASHBOARD:
-        logger.info("Hosting dashboard at localhost, port: {0}".format(config.DASH_PORT))
-        _run_dashboard()
+    # logger.info("Generating .md and .pdf reports.")
+    # repos_names = _get_repos_names()
+    # rg = ReportsGenerator(repos_names=repos_names)
+    # rg.generate_reports_for_all_repos()
+    #
+    # logger.info("Reports generated")
+    #
+    # if config.CLEAN_RAW_DATA:
+    #     logger.info("Deleting raw files.")
+    #     _clean_raw_files()
+    #
+    # if config.RUN_DASHBOARD:
+    #     logger.info("Hosting dashboard at localhost, port: {0}".format(config.DASH_PORT))
+    #     _run_dashboard()

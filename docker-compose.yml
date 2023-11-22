@@ -14,3 +14,20 @@ services:
       - commits-analyzer-network
     ports:
       - '${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}'
+
+  etl:
+    build:
+      context: .
+      dockerfile: ./docker/ETL/Dockerfile
+    depends_on:
+      - db
+    networks:
+      - commits-analyzer-network
+    ports:
+      - "5000:5000"
+    volumes:
+      - './ETL:/ETL'
+      - './config:/config'
+      - './submodules:/submodules'
+      - './raw_data:/raw_data'
+      - './database:/database'
