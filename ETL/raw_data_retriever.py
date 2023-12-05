@@ -8,7 +8,7 @@ import subprocess
 import logging.config
 
 from pathlib import Path
-from typing import List
+from typing import Dict
 
 from config.config import OUTPUT_FILES, GENERAL_INFO_FORMAT, HEADERS
 
@@ -161,78 +161,43 @@ class RawDataRetriever:
         subprocess.run(command, shell=True)
 
     @staticmethod
-    def _get_git_diff_log(commit_hash: str) -> List[str]:
+    def _extract_number_of_insertions_and_deletions(commit_hash: str) -> Dict[str, int]:
         """
         Helper function to '_get_insertions_deletions_info'. It
-        gets the stats for provided hash. We need only last line,
-        which contains information which we are interested in (insertions
-        and deletions). Line is split into list of words.
+        uses awk tool to extract information about number of insertions
+        and deletions for given commit.
 
         :param commit_hash: hash of the commit for which we want to get information
             about
-        :return: last line of the log containing information about number of insertions
-            and deletions, split to the form of list of words
+        :return: dictionary containing number of insertions and deletions for
+            given commit
         """
 
-        command = "git show --shortstat {0} | tail -n 1".format(commit_hash)
+        command = """
+        git show --shortstat {0} | awk '{{
+            # Keep track of the last line
+            lastLine = $0
+        }}
+        END {{
+            # Split the last line by space character
+            split(lastLine, elements)
+            # Check conditions and print accordingly
+            if (length(elements) == 7) {{
+                print elements[4] "," elements[6]
+            }} else if (length(elements) == 5 && substr(elements[5], 1, 1) == "I") {{
+                print elements[4] ",0"
+            }} else if (length(elements) == 5 && substr(elements[5], 1, 1) == "D") {{
+                print "0," elements[4]
+            }} else {{
+                print "0,0" # Return zeros separated by comma in all other cases
+            }}
+        }}'""".format(commit_hash)
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        output = proc.stdout.read().decode().split()
-
-        return output
-
-    @staticmethod
-    def _extract_number_of_insertions(
-            log_line: List[str]
-    ) -> int:
-        """
-        Helper function to '_get_insertions_deletions_info'. It retrieves
-        number of insertion from last line of git diff log converted to
-        list of strings.
-
-        :param log_line: last line of git diff log, decoded and converted to list
-            of words
-        :return: number of insertions per commit
-        """
-
-        # Helper internals
-        def _both_insertions_and_deletions() -> bool:
-            return len(log_line) == 7
-
-        def _insertions_only() -> bool:
-            return log_line[4].startswith("insert")
-
-        if _both_insertions_and_deletions():  # Case when there are both insertions and deletions
-            res = int(log_line[3])
-        else:
-            res = int(log_line[3]) if _insertions_only() else 0
-
-        return res
-
-    @staticmethod
-    def _extract_number_of_deletions(
-            log_line: List[str]
-    ) -> int:
-        """
-        Helper function to '_get_insertions_deletions_info'. It retrieves
-        number of deletions from last line of git diff log converted to
-        list of strings.
-
-        :param log_line: last line of git diff log, decoded and converted to list
-            of words
-        :return: number of deletions per commit
-        """
-
-        # Helper internals
-        def _both_insertions_and_deletions() -> bool:
-            return len(log_line) == 7
-
-        def _insertions_only() -> bool:
-            return log_line[4].startswith("insert")
-
-        if _both_insertions_and_deletions():  # Case when there are both insertions and deletions
-            res = int(log_line[5])
-        else:
-            res = 0 if _insertions_only() else int(log_line[5])
+        output = proc.stdout.read().decode().strip().split(",")
+        res = {
+            "insertions": int(output[0]),
+            "deletions": int(output[1])
+        }
 
         return res
 
@@ -247,17 +212,13 @@ class RawDataRetriever:
             .csv file
         """
 
-        commit_log = self._get_git_diff_log(commit_hash)
-        if not commit_log:  # Case when there are no insertions nor deletions
+        try:
+            insertions_deletions_info = self._extract_number_of_insertions_and_deletions()
+            insertions = insertions_deletions_info.get("insertions")
+            deletions = insertions_deletions_info.get("deletions")
+        except Exception as e: # In case there are any unpredictable exception we need to assume that number of insertions and deletions are zeros
             insertions = 0
             deletions = 0
-        else:
-            try:
-                insertions = self._extract_number_of_insertions(commit_log)
-                deletions = self._extract_number_of_deletions(commit_log)
-            except Exception as e: # In case there are any unpredictable exception we need to assume that number of insertions and deletions are zeros
-                insertions = 0
-                deletions = 0
 
         output_line = "{0};{1};{2}".format(
             commit_hash, insertions, deletions
