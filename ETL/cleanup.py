@@ -6,7 +6,7 @@ safe disc space - some of them might heavyweight.
 
 import subprocess
 import os
-
+import shutil
 
 def _delete_single_repo(repo_path: str) -> None:
     """
@@ -57,3 +57,27 @@ def delete_repos(repos_dir: str) -> None:
         _delete_single_repo(repo_path)
 
     os.chdir(initial_dir)
+
+
+def _clean_raw_files(raw_data_dir: str) -> None:
+    """
+    Clean raw .csv files after pipeline is finished
+
+    :param raw_data_dir: raw data path from config
+    """
+    raw_data_dirs = [path for path in os.scandir(raw_data_dir) if path.is_dir()]
+    for raw_dir in raw_data_dirs:
+        shutil.rmtree(raw_dir)
+
+
+def cleanup(repos_dir: str, raw_data_dir: str) -> None:
+    """
+    Final conducted in case of error - delete submodules and
+    delete raw data.
+
+    :param repos_dir: directory in which submodules are stored
+    :param raw_data_dir: directory in which raw data is stored
+    """
+
+    delete_repos(repos_dir)
+    _clean_raw_files(raw_data_dir)
