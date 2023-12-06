@@ -1,3 +1,4 @@
+import requests
 from flask import Flask
 import os
 
@@ -15,7 +16,12 @@ app = Flask(__name__)
 
 
 @app.route("/run_etl")
-def run_etl():
+def run_etl() -> requests.Response:
+    """
+    Run ETL process when the /run_etl endpoint is triggered.
+
+    :return: HTTP response
+    """
     try:
         logger.info("Launching ETL process.")
 

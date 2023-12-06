@@ -65,7 +65,13 @@ def _config_to_str():
     return output_str
 
 
-def _run_etl():
+def _run_etl() -> requests.Response:
+    """
+    Run ETL process triggering Flask endpoint running in the ETL
+    container.
+
+    :return: ETL module response
+    """
     r = requests.get("http://127.0.0.1:5000/run_etl", timeout=1000)
     return r
 
