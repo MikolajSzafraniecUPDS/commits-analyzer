@@ -77,22 +77,17 @@ if __name__ == "__main__":
     config_str = _config_to_str()
     logger.info("\nConfiguration:\n{0}".format(config_str))
 
-    # logger.info("Cloning repositories.")
-    # get_repos(repos_list=config.REPOS_TO_ANALYZE, submodules_dir=config.SUBMODULES_DIR)
-    #
-    # logger.info("Generating raw data in the format of .csv files.")
-    # generate_raw_data_for_all_repos(config.SUBMODULES_DIR, config.RAW_DATA_DIR)
-    #
-    # logger.info("Deleting submodules.")
-    # delete_repos(repos_dir=config.SUBMODULES_DIR)
-    #
-    # logger.info("Uploading data to Postgres DB.")
-    # load_data_all_repos(config.RAW_DATA_DIR)
-
     etl_reponse = _run_etl()
-    print("Response code: {0}, response message: {1}".format(
-        etl_reponse.status_code, etl_reponse.content)
+    logger.info("ETL process finished, response code: {0}, response message: {1}".format(
+        etl_reponse.status_code, etl_reponse.content.decode())
     )
+
+    if not etl_reponse.ok:
+        raise requests.RequestException(
+            "ETL process failed, error code: {0}, message: {1}".format(
+                etl_reponse.status_code, etl_reponse.content.decode()
+            )
+        )
 
     # logger.info("Generating .md and .pdf reports.")
     # repos_names = _get_repos_names()

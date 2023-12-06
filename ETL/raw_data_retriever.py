@@ -184,9 +184,9 @@ class RawDataRetriever:
             # Check conditions and print accordingly
             if (length(elements) == 7) {{
                 print elements[4] "," elements[6]
-            }} else if (length(elements) == 5 && substr(elements[5], 1, 1) == "I") {{
+            }} else if (length(elements) == 5 && substr(elements[5], 1, 1) == "i") {{
                 print elements[4] ",0"
-            }} else if (length(elements) == 5 && substr(elements[5], 1, 1) == "D") {{
+            }} else if (length(elements) == 5 && substr(elements[5], 1, 1) == "d") {{
                 print "0," elements[4]
             }} else {{
                 print "0,0" # Return zeros separated by comma in all other cases

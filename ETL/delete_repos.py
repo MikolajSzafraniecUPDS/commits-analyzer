@@ -46,9 +46,14 @@ def delete_repos(repos_dir: str) -> None:
 
     # Get paths to all repos in given dir
     repos_paths = [
-        f.path
+        os.path.abspath(f.path)
         for f in os.scandir(repos_dir) if f.is_dir()
     ]
 
+    initial_dir = os.getcwd()
+    os.chdir(repos_dir)
+
     for repo_path in repos_paths:
         _delete_single_repo(repo_path)
+
+    os.chdir(initial_dir)
