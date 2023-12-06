@@ -6,3 +6,4 @@ psycopg2==2.9.9
 pytz==2023.3.post1
 SQLAlchemy==2.0.23
 wordcloud==1.9.2
+requests==2.31.0

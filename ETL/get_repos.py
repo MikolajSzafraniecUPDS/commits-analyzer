@@ -7,6 +7,14 @@ import os
 from typing import List
 
 
+class GetReposError(Exception):
+    """
+    Exception raised in case when process of getting repos
+    is broken.
+    """
+    pass
+
+
 def _store_single_repo_as_submodule(repo_url: str) -> None:
     """
     Clone chosen repository as a submodule. We use submodule
@@ -36,10 +44,13 @@ def get_repos(repos_list: List[str], submodules_dir: str) -> None:
     :param submodules_dir: directory in which we are going to store
         repos during ETL process
     """
-    initial_dir = os.getcwd()
-    os.chdir(submodules_dir)
+    try:
+        initial_dir = os.getcwd()
+        os.chdir(submodules_dir)
 
-    for repo_url in repos_list:
-        _store_single_repo_as_submodule(repo_url)
+        for repo_url in repos_list:
+            _store_single_repo_as_submodule(repo_url)
 
-    os.chdir(initial_dir)
+        os.chdir(initial_dir)
+    except Exception as e:
+        raise GetReposError(str(e))

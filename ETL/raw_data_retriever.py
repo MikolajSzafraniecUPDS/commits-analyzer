@@ -15,6 +15,15 @@ from config.config import OUTPUT_FILES, GENERAL_INFO_FORMAT, HEADERS
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
 
+
+class RawDataGenerationError(Exception):
+    """
+    Exception raised in case when process of raw data generation
+    is broken.
+    """
+    pass
+
+
 class RawDataRetriever:
 
     """
@@ -284,22 +293,24 @@ class RawDataRetriever:
         logger.info("Creating output directory to store raw data for repo '{0}'".format(repo_name))
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
 
-        # Go to the repo dir and generate data
-        logger.info("Changing dir to repository dir")
-        os.chdir(self.repo_path)
-        logger.info("Generating commits hashes for repo '{0}'".format(repo_name))
-        self._get_commit_hashes_no_merges()
-        logger.info("Generating merges info for repo '{0}'".format(repo_name))
-        self._get_merges_info()
-        logger.info("Generating commits general info for repo '{0}'".format(repo_name))
-        self._get_commits_general_info()
-        logger.info("Generating commits messages for repo '{0}'".format(repo_name))
-        self._get_commits_messages()
-        logger.info("Generating information about insertions and deletions for repo '{0}'".format(repo_name))
-        self._get_number_of_insertions_and_deletions_for_all_commits()
+        try:
+            # Go to the repo dir and generate data
+            logger.info("Changing dir to repository dir")
+            os.chdir(self.repo_path)
+            logger.info("Generating commits hashes for repo '{0}'".format(repo_name))
+            self._get_commit_hashes_no_merges()
+            logger.info("Generating merges info for repo '{0}'".format(repo_name))
+            self._get_merges_info()
+            logger.info("Generating commits general info for repo '{0}'".format(repo_name))
+            self._get_commits_general_info()
+            logger.info("Generating commits messages for repo '{0}'".format(repo_name))
+            self._get_commits_messages()
+            logger.info("Generating information about insertions and deletions for repo '{0}'".format(repo_name))
+            self._get_number_of_insertions_and_deletions_for_all_commits()
+        finally:
+            # Go back to the initial directory
+            os.chdir(initial_dir)
 
-        # Go back to the initial directory
-        os.chdir(initial_dir)
 
 def generate_raw_data_for_all_repos(repos_dir: str, output_dir: str) -> None:
     """
@@ -310,13 +321,16 @@ def generate_raw_data_for_all_repos(repos_dir: str, output_dir: str) -> None:
     :param output_dir: where to store the output raw files
     """
 
-    # Get paths to all repos in given dir
-    repos_paths = [
-        f.path
-        for f in os.scandir(repos_dir) if f.is_dir()
-    ]
+    try:
+        # Get paths to all repos in given dir
+        repos_paths = [
+            f.path
+            for f in os.scandir(repos_dir) if f.is_dir()
+        ]
 
-    for single_path in repos_paths:
-        RawDataRetriever(
-            repo_path=single_path, output_dir=output_dir
-        ).generate_raw_data()
+        for single_path in repos_paths:
+            RawDataRetriever(
+                repo_path=single_path, output_dir=output_dir
+            ).generate_raw_data()
+    except Exception as e:
+        raise RawDataGenerationError(str(e))

@@ -8,6 +8,15 @@ import subprocess
 import os
 import shutil
 
+
+class ReposDeletingError(Exception):
+    """
+    Exception raised in case when process of deleting repos
+    is broken.
+    """
+    pass
+
+
 def _delete_single_repo(repo_path: str) -> None:
     """
     Delete single repo stored as a submodule
@@ -44,19 +53,22 @@ def delete_repos(repos_dir: str) -> None:
         to analyze
     """
 
-    # Get paths to all repos in given dir
-    repos_paths = [
-        os.path.abspath(f.path)
-        for f in os.scandir(repos_dir) if f.is_dir()
-    ]
+    try:
+        # Get paths to all repos in given dir
+        repos_paths = [
+            os.path.abspath(f.path)
+            for f in os.scandir(repos_dir) if f.is_dir()
+        ]
 
-    initial_dir = os.getcwd()
-    os.chdir(repos_dir)
+        initial_dir = os.getcwd()
+        os.chdir(repos_dir)
 
-    for repo_path in repos_paths:
-        _delete_single_repo(repo_path)
+        for repo_path in repos_paths:
+            _delete_single_repo(repo_path)
 
-    os.chdir(initial_dir)
+        os.chdir(initial_dir)
+    except Exception as e:
+        raise ReposDeletingError(str(e))
 
 
 def _clean_raw_files(raw_data_dir: str) -> None:
