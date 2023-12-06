@@ -213,7 +213,9 @@ class RawDataRetriever:
         """
 
         try:
-            insertions_deletions_info = self._extract_number_of_insertions_and_deletions()
+            insertions_deletions_info = self._extract_number_of_insertions_and_deletions(
+                commit_hash
+            )
             insertions = insertions_deletions_info.get("insertions")
             deletions = insertions_deletions_info.get("deletions")
         except Exception as e: # In case there are any unpredictable exception we need to assume that number of insertions and deletions are zeros
