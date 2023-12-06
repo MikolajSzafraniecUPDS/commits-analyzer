@@ -81,7 +81,7 @@ def run_etl() -> requests.Response:
         return res
     else:
         res = app.response_class(
-            response="ETL process finished succesfully",
+            response="ETL process finished successfully",
             status=200
         )
 
