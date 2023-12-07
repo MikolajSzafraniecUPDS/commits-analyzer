@@ -7,6 +7,7 @@ safe disc space - some of them might heavyweight.
 import subprocess
 import os
 import shutil
+from pathlib import Path
 
 
 class ReposDeletingError(Exception):
@@ -61,7 +62,8 @@ def delete_repos(repos_dir: str) -> None:
         ]
 
         initial_dir = os.getcwd()
-        os.chdir(repos_dir)
+        repos_parent_dir = Path(repos_dir).parent.absolute()
+        os.chdir(repos_parent_dir)
 
         for repo_path in repos_paths:
             _delete_single_repo(repo_path)

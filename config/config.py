@@ -9,8 +9,7 @@ Configuration file
 REPOS_TO_ANALYZE = [
     "https://github.com/numpy/numpy",
     "https://github.com/DynamicTimeWarping/dtw-python",
-    "https://github.com/boto/boto3",
-    "https://github.com/pandas-dev/pandas"
+    "https://github.com/boto/boto3"
 ]
 
 ### DATABASE CREDENTIALS

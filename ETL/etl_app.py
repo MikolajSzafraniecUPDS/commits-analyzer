@@ -1,7 +1,9 @@
 import requests
-from flask import Flask
 import os
+import importlib
 
+from flask import Flask
+from config import config
 from ETL.get_repos import get_repos, GetReposError
 from ETL.cleanup import delete_repos, cleanup, ReposDeletingError
 from ETL.raw_data_retriever import generate_raw_data_for_all_repos, RawDataGenerationError
@@ -22,9 +24,8 @@ def run_etl() -> requests.Response:
     :return: HTTP response
     """
 
-    # Config is loaded at this stage in order make it possible to refresh it
-    # after each run
-    from config import config
+    # Reload config in case it was updated after deploying docker container
+    importlib.reload(config)
 
     logger.info("Launching ETL process.")
     try:
