@@ -78,7 +78,7 @@ def run_etl() -> requests.Response:
             status=200
         )
 
-    if res.status_code == 500:
+    if res.status_code == 500 or config.CLEAN_RAW_DATA:
         try:
             logger.info("Running cleanup")
             cleanup(config.SUBMODULES_DIR, config.RAW_DATA_DIR)

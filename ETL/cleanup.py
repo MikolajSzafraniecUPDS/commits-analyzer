@@ -55,14 +55,15 @@ def delete_repos(repos_dir: str) -> None:
     """
 
     try:
-        # Get paths to all repos in given dir
+        repos_parent_dir = Path(repos_dir).parent.absolute()
+
+        # Get relative paths to all repos in given dir
         repos_paths = [
-            os.path.abspath(f.path)
+            os.path.relpath(f.path, repos_parent_dir)
             for f in os.scandir(repos_dir) if f.is_dir()
         ]
 
         initial_dir = os.getcwd()
-        repos_parent_dir = Path(repos_dir).parent.absolute()
         os.chdir(repos_parent_dir)
 
         for repo_path in repos_paths:

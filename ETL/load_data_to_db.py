@@ -64,8 +64,6 @@ def load_data_single_repo(raw_data_path: str, db_engine: Engine, repo_name: str 
         of raw files directory if None
     """
 
-    raise Exception
-
     if repo_name is None:
         repo_name = os.path.basename(raw_data_path)
 
