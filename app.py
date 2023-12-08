@@ -73,6 +73,7 @@ def render_tab_content(tab_name: str) -> html.Div:
 # Load callbacks definitions from external file
 get_callbacks(app)
 
+
 # Open dashboard in a Browser
 def open_browser():
     """
@@ -80,6 +81,7 @@ def open_browser():
     """
     if not os.environ.get("WERKZEUG_RUN_MAIN"):
         webbrowser.open_new("http://localhost:{}".format(DASH_PORT))
+
 
 # Run the app
 if __name__ == '__main__':

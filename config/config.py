@@ -7,9 +7,9 @@ Configuration file
 # Please note that addresses should have a form of HTTPS urls to GitHub repo.
 
 REPOS_TO_ANALYZE = [
-    "https://github.com/numpy/numpy",
+    #"https://github.com/numpy/numpy",
     "https://github.com/DynamicTimeWarping/dtw-python",
-    "https://github.com/boto/boto3"
+    #"https://github.com/boto/boto3"
 ]
 
 ### DATABASE CREDENTIALS

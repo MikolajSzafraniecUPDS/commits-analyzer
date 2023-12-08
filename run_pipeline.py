@@ -17,6 +17,7 @@ import logging.config
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
 
+
 def _get_repos_names() -> List[str]:
     """
     Get base names of analyzed repositories
@@ -72,7 +73,26 @@ def _run_etl() -> requests.Response:
 
     :return: ETL module response
     """
-    r = requests.get("http://127.0.0.1:5000/run_etl", timeout=1000)
+    etl_port = os.environ.get("ETL_APP_FLASK_PORT", "5000")
+    r = requests.get(
+        "http://127.0.0.1:{0}/run_etl".format(etl_port),
+        timeout=1000
+    )
+    return r
+
+
+def _run_analysis() -> requests.Response:
+    """
+    Run analysis process triggering Flask endpoint running in the analysis
+    container.
+
+    :return: analysis module response
+    """
+    analysis_port = os.environ.get("ANALYSIS_APP_FLASK_PORT", "5001")
+    r = requests.get(
+        "http://127.0.0.1:{0}/run_analysis".format(analysis_port),
+        timeout=1000
+    )
     return r
 
 
@@ -84,9 +104,6 @@ if __name__ == "__main__":
     logger.info("\nConfiguration:\n{0}".format(config_str))
 
     etl_reponse = _run_etl()
-    logger.info("ETL process finished, response code: {0}, response message: {1}".format(
-        etl_reponse.status_code, etl_reponse.content.decode())
-    )
 
     if not etl_reponse.ok:
         raise requests.RequestException(
@@ -94,18 +111,24 @@ if __name__ == "__main__":
                 etl_reponse.status_code, etl_reponse.content.decode()
             )
         )
+    else:
+        logger.info("ETL process finished, response code: {0}, response message: {1}".format(
+            etl_reponse.status_code, etl_reponse.content.decode())
+        )
 
-    # logger.info("Generating .md and .pdf reports.")
-    # repos_names = _get_repos_names()
-    # rg = ReportsGenerator(repos_names=repos_names)
-    # rg.generate_reports_for_all_repos()
-    #
-    # logger.info("Reports generated")
-    #
-    # if config.CLEAN_RAW_DATA:
-    #     logger.info("Deleting raw files.")
-    #     _clean_raw_files()
-    #
+    analysis_response = _run_analysis()
+
+    if not analysis_response.ok:
+        raise requests.RequestException(
+            "Analysis process failed, error code: {0}, message: {1}".format(
+                analysis_response.status_code, analysis_response.content.decode()
+            )
+        )
+    else:
+        logger.info("Analysis process finished, response code: {0}, response message: {1}".format(
+            analysis_response.status_code, analysis_response.content.decode())
+        )
+
     # if config.RUN_DASHBOARD:
     #     logger.info("Hosting dashboard at localhost, port: {0}".format(config.DASH_PORT))
     #     _run_dashboard()

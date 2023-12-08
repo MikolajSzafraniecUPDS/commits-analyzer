@@ -24,9 +24,26 @@ services:
     networks:
       - commits-analyzer-network
     ports:
-      - "5000:5000"
+      - ${ETL_APP_FLASK_PORT}:5000
     volumes:
       - './ETL:/ETL'
       - './config:/config'
       - './raw_data:/raw_data'
+      - './database:/database'
+
+  analysis:
+    build:
+      context: .
+      dockerfile: ./docker/analysis/Dockerfile
+    depends_on:
+      - db
+      - etl
+    networks:
+      - commits-analyzer-network
+    ports:
+      - ${ANALYSIS_APP_FLASK_PORT}:5000
+    volumes:
+      - './analysis:/analysis'
+      - './config:/config'
+      - './results:/results'
       - './database:/database'

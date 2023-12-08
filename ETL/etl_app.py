@@ -43,7 +43,7 @@ def run_etl() -> requests.Response:
     except GetReposError as gre:
         error_msg = str(gre)
         res = app.response_class(
-            response="ETL process failed at the stage of cloning submodules. Error msg:\n'{0}'".format(
+            response="ETL process failed at the stage of cloning submodules.\nError msg: '{0}'".format(
                 error_msg
             ),
             status=500
@@ -51,7 +51,7 @@ def run_etl() -> requests.Response:
     except RawDataGenerationError as rge:
         error_msg = str(rge)
         res = app.response_class(
-            response="ETL process failed at the stage of generating raw data. Error msg:\n'{0}'".format(
+            response="ETL process failed at the stage of generating raw data.\nError msg: '{0}'".format(
                 error_msg
             ),
             status=500
@@ -59,7 +59,7 @@ def run_etl() -> requests.Response:
     except ReposDeletingError as rde:
         error_msg = str(rde)
         res = app.response_class(
-            response="ETL process failed at the stage of deleting submodules. Error msg:\n'{0}'".format(
+            response="ETL process failed at the stage of deleting submodules.\nError msg: '{0}'".format(
                 error_msg
             ),
             status=500
@@ -67,7 +67,7 @@ def run_etl() -> requests.Response:
     except DBLoadingError as dle:
         error_msg = str(dle)
         res = app.response_class(
-            response="ETL process failed at the stage of uploading data to DB. Error msg:\n'{0}'".format(
+            response="ETL process failed at the stage of uploading data to DB.\nError msg: '{0}'".format(
                 error_msg
             ),
             status=500
