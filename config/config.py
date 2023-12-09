@@ -9,7 +9,7 @@ Configuration file
 REPOS_TO_ANALYZE = [
     #"https://github.com/numpy/numpy",
     "https://github.com/DynamicTimeWarping/dtw-python",
-    #"https://github.com/boto/boto3"
+    "https://github.com/boto/boto3"
 ]
 
 ### DATABASE CREDENTIALS
@@ -111,9 +111,6 @@ TOP_N_WORDS_DASHBOARD = 25
 # Insertions deletions outliers border as number of standard
 # deviations added to the mean value
 DASHBOARD_SD_OUTLIERS_BORDER = 1
-
-# Dash port
-DASH_PORT = 8050
 
 # Flag indicating whether to automatically open a browser when
 # launching an app

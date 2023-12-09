@@ -5,48 +5,15 @@ data to the DB to generate analysis and deploying a dashboard.
 """
 
 import os
-import subprocess
-import shutil
 import requests
+import webbrowser
 
-from typing import List
 from config import config
-from analysis.report_generator import ReportsGenerator
+from threading import Timer
 import logging.config
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
-
-
-def _get_repos_names() -> List[str]:
-    """
-    Get base names of analyzed repositories
-
-    :return: list of repos names as strings
-    """
-
-    res = [
-        os.path.basename(path)
-        for path in config.REPOS_TO_ANALYZE
-    ]
-
-    return res
-
-
-def _clean_raw_files() -> None:
-    """
-    Clean raw .csv files after pipeline is finished
-    """
-    raw_data_dirs = [path for path in os.scandir(config.RAW_DATA_DIR) if path.is_dir()]
-    for raw_dir in raw_data_dirs:
-        shutil.rmtree(raw_dir)
-
-
-def _run_dashboard() -> None:
-    """
-    Run Dash application
-    """
-    subprocess.run("python app.py", shell=True)
 
 
 def _config_to_str():
@@ -96,6 +63,31 @@ def _run_analysis() -> requests.Response:
     return r
 
 
+def _launch_dashboard() -> requests.Response:
+    """
+    Launch dashboard triggering Flash endpoint running in the dashboard
+    container.
+
+    :return: dashboard module response
+    """
+    dashboard_port = os.environ.get("DASH_APP_FLASH_PORT", "5002")
+    r = requests.get(
+        "http://127.0.0.1:{0}/launch_dashboard".format(dashboard_port),
+        timeout=1000
+    )
+    return r
+
+
+# Open dashboard in a Browser
+def _open_browser():
+    """
+    Open browser automatically when launching an app.
+    """
+    dash_port = os.environ.get("DASH_PORT", '8050')
+    if not os.environ.get("WERKZEUG_RUN_MAIN"):
+        webbrowser.open_new("http://localhost:{}".format(dash_port))
+
+
 if __name__ == "__main__":
 
     logger.info("Launching commits-analyzer pipeline.")
@@ -129,6 +121,22 @@ if __name__ == "__main__":
             analysis_response.status_code, analysis_response.content.decode())
         )
 
-    # if config.RUN_DASHBOARD:
-    #     logger.info("Hosting dashboard at localhost, port: {0}".format(config.DASH_PORT))
-    #     _run_dashboard()
+    dashboard_response = _launch_dashboard()
+
+    if not dashboard_response.ok:
+        raise requests.RequestException(
+            "Process of launching dashboard failed, error code: {0}, message: {1}".format(
+                dashboard_response.status_code, dashboard_response.content.decode()
+            )
+        )
+    else:
+        logger.info("Dashboard launched successfully, response code: {0}, response message: {1}".format(
+            dashboard_response.status_code, dashboard_response.content.decode())
+        )
+        dash_port = os.environ.get("DASH_PORT", '8050')
+        logger.info("Hosting dashboard at localhost, port: {0}".format(
+            dash_port
+        ))
+
+        if config.LAUNCH_BROWSER:
+            Timer(1, _open_browser).start()

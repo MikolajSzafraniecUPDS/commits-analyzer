@@ -4,8 +4,6 @@ Definitions of components for each tab of the dashboard.
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html, dash_table
-from database.get_db_engine import get_db_engine
-from typing import List
 
 
 def render_commits_timeline_div() -> html.Div:
