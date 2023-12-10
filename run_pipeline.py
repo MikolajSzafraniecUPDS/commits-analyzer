@@ -5,50 +5,15 @@ data to the DB to generate analysis and deploying a dashboard.
 """
 
 import os
-import subprocess
-import shutil
+import requests
+import webbrowser
 
-from typing import List
-from ETL.get_repos import get_repos
-from ETL.delete_repos import delete_repos
-from ETL.raw_data_retriever import generate_raw_data_for_all_repos
-from ETL.load_data_to_db import load_data_all_repos
 from config import config
-from analysis.report_generator import ReportsGenerator
+from threading import Timer
 import logging.config
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
-
-def _get_repos_names() -> List[str]:
-    """
-    Get base names of analyzed repositories
-
-    :return: list of repos names as strings
-    """
-
-    res = [
-        os.path.basename(path)
-        for path in config.REPOS_TO_ANALYZE
-    ]
-
-    return res
-
-
-def _clean_raw_files() -> None:
-    """
-    Clean raw .csv files after pipeline is finished
-    """
-    raw_data_dirs = [path for path in os.scandir(config.RAW_DATA_DIR) if path.is_dir()]
-    for raw_dir in raw_data_dirs:
-        shutil.rmtree(raw_dir)
-
-
-def _run_dashboard() -> None:
-    """
-    Run Dash application
-    """
-    subprocess.run("python app.py", shell=True)
 
 
 def _config_to_str():
@@ -67,6 +32,62 @@ def _config_to_str():
 
     return output_str
 
+
+def _run_etl() -> requests.Response:
+    """
+    Run ETL process triggering Flask endpoint running in the ETL
+    container.
+
+    :return: ETL module response
+    """
+    etl_port = os.environ.get("ETL_APP_FLASK_PORT", "5000")
+    r = requests.get(
+        "http://127.0.0.1:{0}/run_etl".format(etl_port),
+        timeout=1000
+    )
+    return r
+
+
+def _run_analysis() -> requests.Response:
+    """
+    Run analysis process triggering Flask endpoint running in the analysis
+    container.
+
+    :return: analysis module response
+    """
+    analysis_port = os.environ.get("ANALYSIS_APP_FLASK_PORT", "5001")
+    r = requests.get(
+        "http://127.0.0.1:{0}/run_analysis".format(analysis_port),
+        timeout=1000
+    )
+    return r
+
+
+def _launch_dashboard() -> requests.Response:
+    """
+    Launch dashboard triggering Flash endpoint running in the dashboard
+    container.
+
+    :return: dashboard module response
+    """
+    dashboard_port = os.environ.get("DASH_APP_FLASH_PORT", "5002")
+    r = requests.get(
+        "http://127.0.0.1:{0}/launch_dashboard".format(dashboard_port),
+        timeout=1000
+    )
+    return r
+
+
+# Open dashboard in a Browser
+def _open_browser():
+    """
+    Open browser automatically when launching an app.
+    """
+    dash_port = os.environ.get("DASH_PORT", '8050')
+    if not os.environ.get("WERKZEUG_RUN_MAIN"):
+        webbrowser.open_new("http://localhost:{}".format(dash_port))
+
+
 if __name__ == "__main__":
 
     logger.info("Launching commits-analyzer pipeline.")
@@ -74,29 +95,48 @@ if __name__ == "__main__":
     config_str = _config_to_str()
     logger.info("\nConfiguration:\n{0}".format(config_str))
 
-    logger.info("Cloning repositories.")
-    get_repos(repos_list=config.REPOS_TO_ANALYZE, submodules_dir=config.SUBMODULES_DIR)
+    etl_reponse = _run_etl()
 
-    logger.info("Generating raw data in the format of .csv files.")
-    generate_raw_data_for_all_repos(config.SUBMODULES_DIR, config.RAW_DATA_DIR)
+    if not etl_reponse.ok:
+        raise requests.RequestException(
+            "ETL process failed, error code: {0}, message: {1}".format(
+                etl_reponse.status_code, etl_reponse.content.decode()
+            )
+        )
+    else:
+        logger.info("ETL process finished, response code: {0}, response message: {1}".format(
+            etl_reponse.status_code, etl_reponse.content.decode())
+        )
 
-    logger.info("Deleting submodules.")
-    delete_repos(repos_dir=config.SUBMODULES_DIR)
+    analysis_response = _run_analysis()
 
-    logger.info("Uploading data to Postgres DB.")
-    load_data_all_repos(config.RAW_DATA_DIR)
+    if not analysis_response.ok:
+        raise requests.RequestException(
+            "Analysis process failed, error code: {0}, message: {1}".format(
+                analysis_response.status_code, analysis_response.content.decode()
+            )
+        )
+    else:
+        logger.info("Analysis process finished, response code: {0}, response message: {1}".format(
+            analysis_response.status_code, analysis_response.content.decode())
+        )
 
-    logger.info("Generating .md and .pdf reports.")
-    repos_names = _get_repos_names()
-    rg = ReportsGenerator(repos_names=repos_names)
-    rg.generate_reports_for_all_repos()
+    dashboard_response = _launch_dashboard()
 
-    logger.info("Reports generated")
+    if not dashboard_response.ok:
+        raise requests.RequestException(
+            "Process of launching dashboard failed, error code: {0}, message: {1}".format(
+                dashboard_response.status_code, dashboard_response.content.decode()
+            )
+        )
+    else:
+        logger.info("Dashboard launched successfully, response code: {0}, response message: {1}".format(
+            dashboard_response.status_code, dashboard_response.content.decode())
+        )
+        dash_port = os.environ.get("DASH_PORT", '8050')
+        logger.info("Hosting dashboard at localhost, port: {0}".format(
+            dash_port
+        ))
 
-    if config.CLEAN_RAW_DATA:
-        logger.info("Deleting raw files.")
-        _clean_raw_files()
-
-    if config.RUN_DASHBOARD:
-        logger.info("Hosting dashboard at localhost, port: {0}".format(config.DASH_PORT))
-        _run_dashboard()
+        if config.LAUNCH_BROWSER:
+            Timer(1, _open_browser).start()

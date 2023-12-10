@@ -17,6 +17,13 @@ logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
 
 
+class DBLoadingError(Exception):
+    """
+    Exception raised in case when process of uploading data
+    to DB is broken.
+    """
+    pass
+
 def load_single_table_to_db(
         tab_to_load: pd.DataFrame,
         table_prefix: str,
@@ -102,15 +109,20 @@ def load_data_all_repos(raw_data_dir: str) -> None:
     :param raw_data_dir: directory where raw data is stored
     """
 
-    engine = get_db_engine()
+    try:
+        engine = get_db_engine(inside_compose_network=True)
 
-    # Get paths to all repos in given dir
-    raw_data_paths = [
-        f.path
-        for f in os.scandir(raw_data_dir) if f.is_dir()
-    ]
+        # Get paths to all repos in given dir
+        raw_data_paths = [
+            f.path
+            for f in os.scandir(raw_data_dir) if f.is_dir()
+        ]
 
-    for single_path in raw_data_paths:
-        load_data_single_repo(
-            single_path, db_engine=engine
-        )
+        logger.info("Found following directories with data: {0}".format(raw_data_paths))
+
+        for single_path in raw_data_paths:
+            load_data_single_repo(
+                single_path, db_engine=engine
+            )
+    except Exception as e:
+        raise DBLoadingError(str(e))

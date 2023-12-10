@@ -3,8 +3,6 @@ Definitions of callbacsk functions fot the Dash applications. In order to
 make the main app.py file more concise we will define callbacks generating
 plots and tables in this separated file.
 """
-import datetime
-
 import pandas as pd
 import plotly.express as px
 import base64
@@ -18,7 +16,7 @@ from database.get_db_engine import get_db_engine
 from config.config import TOP_N_CONTRIBUTORS_DASHBOARD, TOP_N_WORDS_DASHBOARD, DASHBOARD_SD_OUTLIERS_BORDER
 from wordcloud import WordCloud
 
-_ENGINE = get_db_engine()
+_ENGINE = get_db_engine(inside_compose_network=True)
 
 
 def _render_word_cloud_image(freq_table: pd.DataFrame):

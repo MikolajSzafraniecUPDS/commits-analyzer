@@ -14,3 +14,54 @@ services:
       - commits-analyzer-network
     ports:
       - '${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}'
+
+  etl:
+    build:
+      context: .
+      dockerfile: ./docker/ETL/Dockerfile
+    depends_on:
+      - db
+    networks:
+      - commits-analyzer-network
+    ports:
+      - ${ETL_APP_FLASK_PORT}:5000
+    volumes:
+      - './ETL:/ETL'
+      - './config:/config'
+      - './raw_data:/raw_data'
+      - './database:/database'
+
+  analysis:
+    build:
+      context: .
+      dockerfile: ./docker/analysis/Dockerfile
+    depends_on:
+      - db
+      - etl
+    networks:
+      - commits-analyzer-network
+    ports:
+      - ${ANALYSIS_APP_FLASK_PORT}:5000
+    volumes:
+      - './analysis:/analysis'
+      - './config:/config'
+      - './results:/results'
+      - './database:/database'
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: ./docker/dashboard/Dockerfile
+    depends_on:
+      - db
+      - etl
+      - analysis
+    networks:
+      - commits-analyzer-network
+    ports:
+      - ${DASH_APP_FLASH_PORT}:5000
+      - ${DASH_PORT}:8050
+    volumes:
+      - './config:/config'
+      - './database:/database'
+      - './dashboard:/dashboard'

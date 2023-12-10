@@ -7,7 +7,7 @@ Configuration file
 # Please note that addresses should have a form of HTTPS urls to GitHub repo.
 
 REPOS_TO_ANALYZE = [
-    "https://github.com/numpy/numpy",
+    #"https://github.com/numpy/numpy",
     "https://github.com/DynamicTimeWarping/dtw-python",
     "https://github.com/boto/boto3"
 ]
@@ -16,6 +16,7 @@ REPOS_TO_ANALYZE = [
 # Postgres database credentials - it has to be the same as in
 # docker/env_variables/global.env and .env files
 POSTGRES_HOST = "127.0.0.1"
+POSTGRES_HOST_COMPOSE = "db"
 POSTGRES_PORT = "5432"
 POSTGRES_DB = "commits_analyzer"
 POSTGRES_USER = "commits_analyzer"
@@ -63,7 +64,7 @@ DB_TABLES_NAMES = {
 ### LOCAL PATHS
 # Directory in which we would like to store repos as submodules
 # during the ETL process
-SUBMODULES_DIR = "submodules"
+SUBMODULES_DIR = "submodules_repo/submodules"
 
 # Directory in which we would like to store raw .csv files during the
 # ETL process
@@ -110,9 +111,6 @@ TOP_N_WORDS_DASHBOARD = 25
 # Insertions deletions outliers border as number of standard
 # deviations added to the mean value
 DASHBOARD_SD_OUTLIERS_BORDER = 1
-
-# Dash port
-DASH_PORT = 8050
 
 # Flag indicating whether to automatically open a browser when
 # launching an app

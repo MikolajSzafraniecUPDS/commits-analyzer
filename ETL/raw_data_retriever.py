@@ -8,12 +8,21 @@ import subprocess
 import logging.config
 
 from pathlib import Path
-from typing import List
+from typing import Dict
 
 from config.config import OUTPUT_FILES, GENERAL_INFO_FORMAT, HEADERS
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
+
+
+class RawDataGenerationError(Exception):
+    """
+    Exception raised in case when process of raw data generation
+    is broken.
+    """
+    pass
+
 
 class RawDataRetriever:
 
@@ -161,78 +170,43 @@ class RawDataRetriever:
         subprocess.run(command, shell=True)
 
     @staticmethod
-    def _get_git_diff_log(commit_hash: str) -> List[str]:
+    def _extract_number_of_insertions_and_deletions(commit_hash: str) -> Dict[str, int]:
         """
         Helper function to '_get_insertions_deletions_info'. It
-        gets the stats for provided hash. We need only last line,
-        which contains information which we are interested in (insertions
-        and deletions). Line is split into list of words.
+        uses awk tool to extract information about number of insertions
+        and deletions for given commit.
 
         :param commit_hash: hash of the commit for which we want to get information
             about
-        :return: last line of the log containing information about number of insertions
-            and deletions, split to the form of list of words
+        :return: dictionary containing number of insertions and deletions for
+            given commit
         """
 
-        command = "git show --shortstat {0} | tail -n 1".format(commit_hash)
+        command = """
+        git show --shortstat {0} | awk '{{
+            # Keep track of the last line
+            lastLine = $0
+        }}
+        END {{
+            # Split the last line by space character
+            split(lastLine, elements)
+            # Check conditions and print accordingly
+            if (length(elements) == 7) {{
+                print elements[4] "," elements[6]
+            }} else if (length(elements) == 5 && substr(elements[5], 1, 1) == "i") {{
+                print elements[4] ",0"
+            }} else if (length(elements) == 5 && substr(elements[5], 1, 1) == "d") {{
+                print "0," elements[4]
+            }} else {{
+                print "0,0" # Return zeros separated by comma in all other cases
+            }}
+        }}'""".format(commit_hash)
         proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE)
-        output = proc.stdout.read().decode().split()
-
-        return output
-
-    @staticmethod
-    def _extract_number_of_insertions(
-            log_line: List[str]
-    ) -> int:
-        """
-        Helper function to '_get_insertions_deletions_info'. It retrieves
-        number of insertion from last line of git diff log converted to
-        list of strings.
-
-        :param log_line: last line of git diff log, decoded and converted to list
-            of words
-        :return: number of insertions per commit
-        """
-
-        # Helper internals
-        def _both_insertions_and_deletions() -> bool:
-            return len(log_line) == 7
-
-        def _insertions_only() -> bool:
-            return log_line[4].startswith("insert")
-
-        if _both_insertions_and_deletions():  # Case when there are both insertions and deletions
-            res = int(log_line[3])
-        else:
-            res = int(log_line[3]) if _insertions_only() else 0
-
-        return res
-
-    @staticmethod
-    def _extract_number_of_deletions(
-            log_line: List[str]
-    ) -> int:
-        """
-        Helper function to '_get_insertions_deletions_info'. It retrieves
-        number of deletions from last line of git diff log converted to
-        list of strings.
-
-        :param log_line: last line of git diff log, decoded and converted to list
-            of words
-        :return: number of deletions per commit
-        """
-
-        # Helper internals
-        def _both_insertions_and_deletions() -> bool:
-            return len(log_line) == 7
-
-        def _insertions_only() -> bool:
-            return log_line[4].startswith("insert")
-
-        if _both_insertions_and_deletions():  # Case when there are both insertions and deletions
-            res = int(log_line[5])
-        else:
-            res = 0 if _insertions_only() else int(log_line[5])
+        output = proc.stdout.read().decode().strip().split(",")
+        res = {
+            "insertions": int(output[0]),
+            "deletions": int(output[1])
+        }
 
         return res
 
@@ -247,17 +221,15 @@ class RawDataRetriever:
             .csv file
         """
 
-        commit_log = self._get_git_diff_log(commit_hash)
-        if not commit_log:  # Case when there are no insertions nor deletions
+        try:
+            insertions_deletions_info = self._extract_number_of_insertions_and_deletions(
+                commit_hash
+            )
+            insertions = insertions_deletions_info.get("insertions")
+            deletions = insertions_deletions_info.get("deletions")
+        except Exception as e: # In case there are any unpredictable exception we need to assume that number of insertions and deletions are zeros
             insertions = 0
             deletions = 0
-        else:
-            try:
-                insertions = self._extract_number_of_insertions(commit_log)
-                deletions = self._extract_number_of_deletions(commit_log)
-            except Exception as e: # In case there are any unpredictable exception we need to assume that number of insertions and deletions are zeros
-                insertions = 0
-                deletions = 0
 
         output_line = "{0};{1};{2}".format(
             commit_hash, insertions, deletions
@@ -321,22 +293,24 @@ class RawDataRetriever:
         logger.info("Creating output directory to store raw data for repo '{0}'".format(repo_name))
         Path(self.output_dir).mkdir(parents=True, exist_ok=True)
 
-        # Go to the repo dir and generate data
-        logger.info("Changing dir to repository dir")
-        os.chdir(self.repo_path)
-        logger.info("Generating commits hashes for repo '{0}'".format(repo_name))
-        self._get_commit_hashes_no_merges()
-        logger.info("Generating merges info for repo '{0}'".format(repo_name))
-        self._get_merges_info()
-        logger.info("Generating commits general info for repo '{0}'".format(repo_name))
-        self._get_commits_general_info()
-        logger.info("Generating commits messages for repo '{0}'".format(repo_name))
-        self._get_commits_messages()
-        logger.info("Generating information about insertions and deletions for repo '{0}'".format(repo_name))
-        self._get_number_of_insertions_and_deletions_for_all_commits()
+        try:
+            # Go to the repo dir and generate data
+            logger.info("Changing dir to repository dir")
+            os.chdir(self.repo_path)
+            logger.info("Generating commits hashes for repo '{0}'".format(repo_name))
+            self._get_commit_hashes_no_merges()
+            logger.info("Generating merges info for repo '{0}'".format(repo_name))
+            self._get_merges_info()
+            logger.info("Generating commits general info for repo '{0}'".format(repo_name))
+            self._get_commits_general_info()
+            logger.info("Generating commits messages for repo '{0}'".format(repo_name))
+            self._get_commits_messages()
+            logger.info("Generating information about insertions and deletions for repo '{0}'".format(repo_name))
+            self._get_number_of_insertions_and_deletions_for_all_commits()
+        finally:
+            # Go back to the initial directory
+            os.chdir(initial_dir)
 
-        # Go back to the initial directory
-        os.chdir(initial_dir)
 
 def generate_raw_data_for_all_repos(repos_dir: str, output_dir: str) -> None:
     """
@@ -347,13 +321,16 @@ def generate_raw_data_for_all_repos(repos_dir: str, output_dir: str) -> None:
     :param output_dir: where to store the output raw files
     """
 
-    # Get paths to all repos in given dir
-    repos_paths = [
-        f.path
-        for f in os.scandir(repos_dir) if f.is_dir()
-    ]
+    try:
+        # Get paths to all repos in given dir
+        repos_paths = [
+            f.path
+            for f in os.scandir(repos_dir) if f.is_dir()
+        ]
 
-    for single_path in repos_paths:
-        RawDataRetriever(
-            repo_path=single_path, output_dir=output_dir
-        ).generate_raw_data()
+        for single_path in repos_paths:
+            RawDataRetriever(
+                repo_path=single_path, output_dir=output_dir
+            ).generate_raw_data()
+    except Exception as e:
+        raise RawDataGenerationError(str(e))

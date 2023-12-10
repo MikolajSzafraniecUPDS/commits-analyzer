@@ -9,13 +9,13 @@ import subprocess
 import shutil
 
 from typing import List
-from sqlalchemy import create_engine, Engine
 from config.config import *
 from analysis.plots_and_tables_generator import PlotsAndTablesGenerator
 from database.get_db_engine import get_db_engine
 
 logging.config.fileConfig(os.path.join("config", "logging.conf"))
 logger = logging.getLogger("consoleLogger")
+
 
 class ReportsGenerator:
 
@@ -29,23 +29,22 @@ class ReportsGenerator:
         """
 
         self.repos_names = self._get_repos_names() if repos_names is None else repos_names
-        self.db_engine = get_db_engine()
+        self.db_engine = get_db_engine(inside_compose_network=True)
 
     @staticmethod
     def _get_repos_names() -> List[str]:
         """
-        Get list containing names of all repos kept in the submodules
-        directory
+        Get base names of analyzed repositories
 
-        :return: list containing repos names as strings
+        :return: list of repos names as strings
         """
 
-        repos_names = [
-            os.path.basename(f.path)
-            for f in os.scandir(SUBMODULES_DIR) if f.is_dir()
+        res = [
+            os.path.basename(path)
+            for path in REPOS_TO_ANALYZE
         ]
 
-        return repos_names
+        return res
 
     @staticmethod
     def _md_report_to_pdf(input_file_path: str, output_file_path: str) -> None:

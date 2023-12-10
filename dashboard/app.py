@@ -3,16 +3,10 @@ Dash application
 """
 
 # Import packages
-import os
-
 from dash import Dash, html, dcc, Input, Output, callback
 from dashboard.utils import get_names_of_availables_repos
 from dashboard.callbacks import get_callbacks
 from dashboard.tabs_components import *
-from config.config import DASH_PORT, LAUNCH_BROWSER
-
-from threading import Timer
-import webbrowser
 
 # Initialize the app
 external_stylesheets = [dbc.themes.BOOTSTRAP]
@@ -73,16 +67,7 @@ def render_tab_content(tab_name: str) -> html.Div:
 # Load callbacks definitions from external file
 get_callbacks(app)
 
-# Open dashboard in a Browser
-def open_browser():
-    """
-    Open browser automatically when launching an app.
-    """
-    if not os.environ.get("WERKZEUG_RUN_MAIN"):
-        webbrowser.open_new("http://localhost:{}".format(DASH_PORT))
 
 # Run the app
 if __name__ == '__main__':
-    if LAUNCH_BROWSER:
-        Timer(1, open_browser).start();
-    app.run(debug=True)
+    app.run(debug=True, host="0.0.0.0")
