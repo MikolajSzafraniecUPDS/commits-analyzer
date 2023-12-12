@@ -7,6 +7,7 @@ from dash import Dash, html, dcc, Input, Output, callback
 from dashboard.utils import get_names_of_availables_repos
 from dashboard.callbacks import get_callbacks
 from dashboard.tabs_components import *
+import dash_bootstrap_components as dbc
 
 # Initialize the app
 external_stylesheets = [dbc.themes.DARKLY]
@@ -22,26 +23,34 @@ names_of_repos_to_analyze = get_names_of_availables_repos()
 # App layout
 app.layout = html.Div([
     html.H1(children='Commits Analyzer Dashboard'),
+    html.Br(),
     html.H2(children="Select repository:"),
-    dcc.Dropdown(
+    dbc.Select(
         names_of_repos_to_analyze,
         names_of_repos_to_analyze[0],
-        id="repo_selector"
+        id="repo_selector",
+        style={"width": "20%"}
     ),
-    dcc.Tabs(id="section-selection", value="commits-timeline", children=[
-        dcc.Tab(label="Commits timeline", value="commits-timeline"),
-        dcc.Tab(label="Top contributors", value="top-contributors"),
-        dcc.Tab(label="Words frequency", value="words-frequency"),
-        dcc.Tab(label="Commits heatmap", value="commits-heatmap"),
-        dcc.Tab(label="Insertions distribution", value="insertions-distributions")
-    ]),
+    html.Br(),
+    html.Hr(),
+    dbc.Tabs(
+        id="section-selection",
+        active_tab="commits-timeline",
+        children=[
+            dbc.Tab(label="Commits timeline", tab_id="commits-timeline"),
+            dbc.Tab(label="Top contributors", tab_id="top-contributors"),
+            dbc.Tab(label="Words frequency", tab_id="words-frequency"),
+            dbc.Tab(label="Commits heatmap", tab_id="commits-heatmap"),
+            dbc.Tab(label="Insertions distribution", tab_id="insertions-distributions")
+        ]
+    ),
     html.Div(id="output-tab")
 ])
 
 # Define a way of updating tabs of dashboard
 @callback(
     Output("output-tab", "children"),
-    Input("section-selection", "value")
+    Input("section-selection", "active_tab")
 )
 def render_tab_content(tab_name: str) -> html.Div:
     """

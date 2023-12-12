@@ -6,6 +6,7 @@ plots and tables in this separated file.
 import pandas as pd
 import plotly.express as px
 import base64
+import dash_bootstrap_components as dbc
 
 from io import BytesIO
 
@@ -94,8 +95,8 @@ def get_callbacks(app: Dash):
     # Generate tables for top contributors tabs
     @app.callback(
         [
-            Output("top-contributors-commits-volume", "data"),
-            Output("top-contributors-insertions-volume", "data")
+            Output("top-contributors-commits-volume", "children"),
+            Output("top-contributors-insertions-volume", "children")
         ],
         Input("repo_selector", "value")
     )
@@ -130,12 +131,20 @@ def get_callbacks(app: Dash):
             }
         )
 
-        return top_commits_tab.to_dict("records"), top_insertions_tab.to_dict("records")
+        top_commits_tab_dbc = dbc.Table.from_dataframe(
+            top_commits_tab, striped=True, bordered=True, hover=True, index=False
+        )
+
+        top_insertions_tab_dbc = dbc.Table.from_dataframe(
+            top_insertions_tab, striped=True, bordered=True, hover=True, index=False
+        )
+
+        return top_commits_tab_dbc, top_insertions_tab_dbc
 
     @app.callback(
         [
             Output("word-cloud-image", "src"),
-            Output("word-frequency-tab", "data")
+            Output("word-frequency-tab", "children")
         ],
         [
             Input("repo_selector", "value"),
@@ -178,7 +187,11 @@ def get_callbacks(app: Dash):
             }
         )
 
-        return image_src, output_tab.to_dict("records")
+        output_tab_dbc = dbc.Table.from_dataframe(
+            output_tab, striped=True, bordered=True, hover=True, index=False
+        )
+
+        return image_src, output_tab_dbc
 
     @app.callback(
         [
@@ -187,7 +200,7 @@ def get_callbacks(app: Dash):
         ],
         Input("repo_selector", "value")
     )
-    def update_commits_authors_dropdown(repo_name):
+    def update_commits_authors_dropdown(repo_name: str):
         """
         Update dropdown allowing to select commit author
 
@@ -263,7 +276,7 @@ def get_callbacks(app: Dash):
             Input("commits-author-to-heatmap", "value")
         ]
     )
-    def update_commits_heatmap(repo_name, author_name):
+    def update_commits_heatmap(repo_name: str, author_name: str):
         """
         Update plot showing number of commits across time in the form
         of heatmap.
@@ -273,6 +286,8 @@ def get_callbacks(app: Dash):
         """
         tab_name = DB_TABLES_NAMES.get("general_info").format(repo_name)
         sql_query = 'SELECT date_str FROM public."{0}"'.format(tab_name)
+        # In case when there is a quote sign in an author's name
+        author_name = author_name.replace("'", "''")
         if author_name != "All":
             sql_query += " WHERE author_name = \'{0}\'".format(author_name)
 
@@ -317,11 +332,11 @@ def get_callbacks(app: Dash):
     @app.callback(
         [
             Output("insertions-distributions-graph", "figure"),
-            Output("insertions-distribution-stats", "data")
+            Output("insertions-distribution-stats", "children")
         ],
         Input("repo_selector", "value")
     )
-    def update_commits_distribution_graph_and_table(repo_name):
+    def update_commits_distribution_graph_and_table(repo_name: str):
         """
         Update plot presenting distribution of insertions across commits and
         table showing insertions statistics.
@@ -340,4 +355,8 @@ def get_callbacks(app: Dash):
             columns={"index": "Measure", "insertions": "Insertions"}
         ).round(2)
 
-        return histogram_fig, insertions_stats.to_dict("records")
+        insertions_stats_dbc = dbc.Table.from_dataframe(
+            insertions_stats, striped=True, bordered=True, hover=True, index=False
+        )
+
+        return histogram_fig, insertions_stats_dbc

@@ -12,18 +12,36 @@ def render_commits_timeline_div() -> html.Div:
 
     :return: output Dash Div
     """
+    sidebar = html.Div(
+        [
+            html.Br(),
+            html.H3("Commits timeline"),
+            html.Hr(),
+            html.P(
+                """
+                Plot showing number of commits per given period. 
+                You can select time series granularity (daily / monthly).
+                """,
+                className="lead"
+            ),
+            dbc.Select(
+                ["Day", "Month"],
+                value="Day",
+                id="timeline-agg-period"
+            ),
+        ]
+    )
+
     res = html.Div([
-        html.H3("Commits timeline"),
         dbc.Row([
+            dbc.Col(
+                [
+                    sidebar
+                ],
+                width=3
+            ),
             dbc.Col([
-                html.H4("Select aggregation period:"),
-                dcc.Dropdown(
-                    ["Day", "Month"],
-                    value="Day",
-                    id="timeline-agg-period"
-                )
-            ], width=3),
-            dbc.Col([
+                html.Br(),
                 dcc.Graph(id="commits-timeline-graph")
             ])
         ])
@@ -40,16 +58,31 @@ def render_top_contributors_div() -> html.Div:
     :return: output Dash Div
     """
     res = html.Div([
+        html.Br(),
         html.H3("Top contributors"),
+        html.Br(),
+        html.P(
+            """
+            Tables presenting top contributors in terms of number of commits and number of insertions.
+            """,
+            className="lead"
+        ),
+        html.Br(),
         html.Div(
             children=dbc.Row(children=[
                 dbc.Col([
                     html.H4("Top contributors in terms of commits count"),
-                    dash_table.DataTable(id="top-contributors-commits-volume", fill_width=False)
+                    html.Div(
+                        id="top-contributors-commits-volume",
+                        style={"maxHeight": "500px", "overflow": "scroll"}
+                    )
                 ]),
                 dbc.Col([
                     html.H4("Top contributors in terms of volume of insertions"),
-                    dash_table.DataTable(id="top-contributors-insertions-volume", fill_width=False)
+                    html.Div(
+                        id="top-contributors-insertions-volume",
+                        style={"maxHeight": "500px", "overflow": "scroll"}
+                    )
                 ])
             ])
         )
@@ -66,9 +99,21 @@ def render_words_frequency_div() -> html.Div:
     :return: output Dash Div
     """
 
-    res = html.Div([
+    sidebar = html.Div([
+        html.Br(),
         html.H3("Word frequency analysis"),
-        dcc.Dropdown(
+        html.P(
+            """
+            Table and wordcloud presenting key phrases most frequently used in commit
+            messages.
+            """,
+            className="lead"
+        ),
+        html.Hr(),
+        html.P(
+            "Select type of the words to display (either 'raw' or 'stemmed'):", className="lead"
+        ),
+        dbc.Select(
             options=[
                 {"label": "Raw words", "value": "raw"},
                 {"label": "Stemmed words", "value": "stemmed"}
@@ -76,25 +121,37 @@ def render_words_frequency_div() -> html.Div:
             value="raw",
             id="word-frequency-type"
         ),
+        html.Br(),
+        html.Hr(),
+        html.H4("Word frequency table"),
+        html.Div(
+            id="word-frequency-tab",
+            style={"maxHeight": "500px", "overflow": "scroll"}
+        )
+    ])
+
+    res = html.Div([
         dbc.Row([
+            dbc.Col(
+                [
+                    sidebar
+                ],
+                width=4
+            ),
             dbc.Col([
-                html.H4("Word cloud"),
-                html.Img(
-                    id="word-cloud-image",
-                    style={
-                        "display": "block",
-                        "margin-left": "auto",
-                        "margin-right": "auto",
-                        "width": "90%"
-                    }
-                )
-            ]),
-            dbc.Col([
-                html.H4("Word frequency table"),
-                dash_table.DataTable(
-                    id="word-frequency-tab",
-                    fill_width=False
-                )
+                html.Br(),
+                dbc.Row([
+                    html.H4("Word cloud"),
+                    html.Img(
+                        id="word-cloud-image",
+                        style={
+                            "display": "block",
+                            "margin-left": "auto",
+                            "margin-right": "auto",
+                            "width": "90%"
+                        }
+                    )
+                ]),
             ])
         ])
     ])
@@ -109,15 +166,32 @@ def render_commits_heatmap_tab() -> html.Div:
 
     :return: output Dash Div
     """
-    res = html.Div([
+
+    sidebar = html.Div([
+        html.Br(),
         html.H3("Commits heatmap"),
+        html.P(
+            "Plot showing number of insertions per day", className="lead"
+        ),
+        html.Hr(),
+        html.P(
+            "Please select commit author to show:", className="lead"
+        ),
+        dbc.Select(
+            value="All",
+            id="commits-author-to-heatmap"
+        )
+    ])
+
+    res = html.Div([
         dbc.Row([
+            dbc.Col(
+                [
+                    sidebar
+                ],
+                width=3
+            ),
             dbc.Col([
-                html.H4("Select commit author"),
-                dcc.Dropdown(
-                    value="All",
-                    id="commits-author-to-heatmap"
-                ),
                 dcc.Graph(id="commits-heatmap")
             ]),
         ])
@@ -135,16 +209,25 @@ def render_insertions_distributions_tab() -> html.Div:
     """
 
     res = html.Div([
-        html.H3("Distribution of number of insertions"),
+        html.Br(),
+        html.H3("Insertions stats"),
+        html.P(
+            """
+            This tab presents histogram of number of insertions per single commit and general
+            insertions stats.
+            """,
+            className="lead"
+        ),
+        html.Hr(),
+        html.Br(),
         dbc.Row([
             dbc.Col([
+                html.H3("Distribution of number of insertions"),
                 dcc.Graph(id="insertions-distributions-graph")
             ]),
             dbc.Col([
-                dash_table.DataTable(
-                    id="insertions-distribution-stats",
-                    fill_width=False
-                )
+                html.H4("Insertions statistics"),
+                html.Div(id="insertions-distribution-stats")
             ])
         ])
     ])
