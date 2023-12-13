@@ -47,8 +47,11 @@ If you are working on Linux, the command usually needs to be preceded by the *su
 **IMPORTANT NOTE** - if you already have a Postgres database hosted locally, and you are using
 default Postgres port (5432) you will need make changes in *.env* file and replace value of
 *POSTGRES_PORT* variable with the port you wish. The same stands for Flask ports for ETL, analytics
-and dashboard services (5000-5002) and Dash application (8050). All of them are specified in the
-*.env* file and use in the docker-compose file.
+and dashboard services (5000-5002) and default port ofDash application (8050). All of them 
+are specified in the *.env* file and used by docker-compose.
+
+If you will make any changes in the .env file you will need to set the same env variables 
+using new values before launching pipeline.
 
 3. Before you will run the pipeline please take a look at the configuration file and
 check whether the URLs of repositories you want to analyze are there. They are stored
