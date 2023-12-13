@@ -70,7 +70,7 @@ def _launch_dashboard() -> requests.Response:
 
     :return: dashboard module response
     """
-    dashboard_port = os.environ.get("DASH_APP_FLASH_PORT", "5002")
+    dashboard_port = os.environ.get("DASH_APP_FLASK_PORT", "5002")
     r = requests.get(
         "http://127.0.0.1:{0}/launch_dashboard".format(dashboard_port),
         timeout=1000

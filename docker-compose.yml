@@ -13,7 +13,7 @@ services:
     networks:
       - commits-analyzer-network
     ports:
-      - '${POSTGRES_PORT:-5432}:${POSTGRES_PORT:-5432}'
+      - '${POSTGRES_PORT:-5432}:5432'
 
   etl:
     build:
@@ -24,7 +24,7 @@ services:
     networks:
       - commits-analyzer-network
     ports:
-      - ${ETL_APP_FLASK_PORT}:5000
+      - '${ETL_APP_FLASK_PORT:-5000}:5000'
     volumes:
       - './ETL:/ETL'
       - './config:/config'
@@ -41,7 +41,7 @@ services:
     networks:
       - commits-analyzer-network
     ports:
-      - ${ANALYSIS_APP_FLASK_PORT}:5000
+      - '${ANALYSIS_APP_FLASK_PORT:-5001}:5000'
     volumes:
       - './analysis:/analysis'
       - './config:/config'
@@ -59,8 +59,8 @@ services:
     networks:
       - commits-analyzer-network
     ports:
-      - ${DASH_APP_FLASH_PORT}:5000
-      - ${DASH_PORT}:8050
+      - '${DASH_APP_FLASK_PORT:-5002}:5000'
+      - '${DASH_PORT:-8050}:8050'
     volumes:
       - './config:/config'
       - './database:/database'
