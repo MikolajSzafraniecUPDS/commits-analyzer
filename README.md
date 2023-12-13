@@ -14,6 +14,10 @@ In order to use this tool locally the following prerequisites must be met:
 
 And that's all! All we need to do is run a few commands, described in the next subsection.
 
+WARNING - it is highly recommended to change default postgres password before starting the
+whole process. It needs to be replaced in the config file (*POSTGRES_PASSWORD* variable) and
+in the */docker/env_variables/global.env* file (*POSTGRES_PASSWORD* variable as well).
+
 ### Running the pipeline
 Before you will run the pipeline please open a terminal and go to the *commit-analyzer* root directory.
 It is recommended to set up a virtualenv at this step - you can take a look at this 
@@ -50,7 +54,7 @@ default Postgres port (5432) you will need make changes in *.env* file and repla
 and dashboard services (5000-5002) and default port ofDash application (8050). All of them 
 are specified in the *.env* file and used by docker-compose.
 
-If you will make any changes in the .env file you will need to set the same env variables 
+If you make any changes in the .env file you will need to set the same env variables 
 using new values before launching pipeline.
 
 3. Before you will run the pipeline please take a look at the configuration file and
