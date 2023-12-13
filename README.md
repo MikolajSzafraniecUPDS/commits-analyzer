@@ -5,8 +5,6 @@ database, through cloning chosen repositories, retrieving raw data using shell *
 preprocessing and uploading data to the database, generating markdown and .pdf reports to deploying
 dashboard on localhost, developed using *Dash*.
 
-**IMPORTANT NOTE** - pipeline in its current form only works on Linux system.
-
 ## Usage
 
 ### Requirements
@@ -38,13 +36,19 @@ line command:
 docker-compose up
 ```
 
-**IMPORTANT NOTE** - if you already have a Postgres database hosted locally and you are using
-default Postgres port (5432) you will need make changes in two files:
-- .env
-- config/config.py
+or:
 
-Please choose some another free port and assign it to POSTGRES_PORT in *.env* file and
-POSTGRES_PORT variable in config.py file.
+```shell
+docker-compose up --build
+```
+
+If you are working on Linux, the command usually needs to be preceded by the *sudo* keyword.
+
+**IMPORTANT NOTE** - if you already have a Postgres database hosted locally, and you are using
+default Postgres port (5432) you will need make changes in *.env* file and replace value of
+*POSTGRES_PORT* variable with the port you wish. The same stands for Flask ports for ETL, analytics
+and dashboard services (5000-5002) and Dash application (8050). All of them are specified in the
+*.env* file and use in the docker-compose file.
 
 3. Before you will run the pipeline please take a look at the configuration file and
 check whether the URLs of repositories you want to analyze are there. They are stored
@@ -53,13 +57,6 @@ three repositories are listed there:
 - [numpy](https://github.com/numpy/numpy)
 - [dtw-python](https://github.com/DynamicTimeWarping/dtw-python)
 - [boto3](https://github.com/boto/boto3)
-
-**numpy** repo was selected, because it is one of the most important library for data scientist and
-data analysts using python (and not only for them). Thanks to it python is one of the most
-commonly using language in the data-related area. **boto3** is a great tool, simplifying communication
-with the AWS cloud and allowing to automate many processes. **dtw-python** was chosen by author of this
-solution from personal reason - he is fascinated with time series analysis and Dynamic Time Warping
-is one of the most interesting algorithms in this area :) 
 
 4. Optionally, you can make some additional changes in config, for example decide to keep
 raw .csv files with data retrieved from *git log* - in order to do this set 
@@ -72,14 +69,8 @@ python run_pipeline.py
 
 After pipeline is finished you can take a look at the reports generated as markdown and .pdf
 files (stored in **/results** directory as default) and take a look at the dashboard. If config
-variable RUN_DASHBOARD was set as *False* you will need to run one more command:
-
-```shell
-python app.py
-```
-
-Dashboard should show up automatically, if config variable LAUNCH_BROWSER is set as *False*
-please open a browser and visit address http://localhost:8050
+variable LAUNCH_BROWSER was set as *False* you will need to open a browser manually and type
+*http://localhost:8050* in order to see the dashboard.
 
 ## Pipeline flow
 Whole pipeline consists of a few steps - all of them are listed and described below:
@@ -117,9 +108,6 @@ relative paths. Afterward .pdf reports are generated from markdown files.
 ### Raw data cleanage
 If CLEAN_RAW_DATA is set as True all the .csv files from */raw_data* directory are removed at
 this step.
-
-### Dashboard deployment
-If RUN_DASHBOARD flag is set as True dashboard is launched.
 
 ## Database schema
 There are following tables loaded to the database ({repo_name} is replaced with the name
@@ -213,23 +201,10 @@ summarizing basic insertions statistics (mean value, standard deviation, etc.):
 
 ![Insertions distributions](assets/imgs/readme_fig_7.png)
 
-## Challenges
-There were a few challenges during preparing this solution. It wasn't straightforward to extract
-the information about insertions and deletions per commit, since it is not the part of
-git *format pretty* option. We needed to use *git show --shortstat* command, get the last
-line of text and play with it a little bit (sometimes there are only insertions or only
-deletions, so the context is important).
-
 ## TO DO
-*Done is better than perfect* - that's why the solution can be already used, however it still
-needs some improvements:
 - Improve the structure of .pdf reports - currently we are using *mdpdf* which is very simple and fast
 to implement, however it produces documents which are not really nice. In the future it is worth
 to switch to another library, allowing for more customization.
-- Improve the dashboard's appearance - it can look far better if we play with bootstrap styles or .css
 - Add more tables to the database in order to improve performance of dashboard - some operations on
 data are done on the backend of the Dash app, we should prepare dedicated tables in the DB for each
 tab.
-- Last but not least - all modules (ETL, analysis, dashboard) can be packed to docker containers
-and host via the docker compose. It will allow to run the solution on all type of
-operatin systems (Windows, MacOS, etc.).
